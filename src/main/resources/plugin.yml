@@ -1,0 +1,29 @@
+name: DarkAges
+main: com.dumptruckman.minecraft.darkages.DarkAgesPlugin
+version: maven-version-number
+depend: [Vault]
+
+commands:
+  darkages:
+    description: Main item menu.
+    permission: darkages.menu
+  abilitybook:
+    description: Shows all of your known abilities.
+
+permissions:
+  darkages.abilities.*:
+    default: op
+    children:
+      darkages.abilities.skills.*: true
+      darkages.abilities.spells.*: true
+
+  darkages.abilities.skills.*:
+    default: op
+
+  darkages.abilities.spells.*:
+    default: op
+    children:
+      darkages.abilities.spells.soulstone: true
+
+  darkages.abilities.spells.soulstone:
+    default: true
