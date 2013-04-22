@@ -17,9 +17,16 @@ public @interface AbilityInfo {
     String description();
     String permission();
     Material material();
-    Material[] components() default {};
-    long castTime() default 0L;
-    long coolDown() default 0L;
+    Material[] prepareComponents() default {};
+    Material[] usageComponents() default {};
+    int castTime() default 0;
+    int coolDown() default 0;
     int expCost() default 0;
     Class<? extends Ability>[] requirements() default {};
+    boolean isHidden() default false;
+    int inventoryLimit() default 0;
+    boolean consumesAbilityItem() default true;
+    boolean destroyedOnDeath() default false;
+    boolean retainOnDeath() default false;
+    boolean allowDrop() default false;
 }

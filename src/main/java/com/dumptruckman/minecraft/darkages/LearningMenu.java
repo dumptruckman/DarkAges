@@ -3,6 +3,7 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.actionmenu.MenuItem;
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
+import com.dumptruckman.minecraft.darkages.abilities.skills.Ambush;
 import com.dumptruckman.minecraft.darkages.abilities.spells.SoulStone;
 
 public class LearningMenu {
@@ -37,6 +38,7 @@ public class LearningMenu {
         final SingleViewMenu skillsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Skills", 9);
 
         // Add skills to menu
+        skillsMenu.addItem(new Ambush(plugin).createLearningMenuItem());
 
         return skillsMenu;
     }

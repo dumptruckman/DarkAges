@@ -12,16 +12,18 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class DeathHandler implements Listener {
 
     @NotNull
     private final DarkAgesPlugin plugin;
-    public final Map<String, Integer> expAtDeath = new HashMap<String, Integer>(Bukkit.getMaxPlayers());
-    private final Map<String, ItemStack> soulStonesAtDeath = new HashMap<String, ItemStack>(Bukkit.getMaxPlayers());
-    public final Map<String, EntityCoordinates> deathLocation = new HashMap<String, EntityCoordinates>(Bukkit.getMaxPlayers());
+    public final Map<String, Integer> expAtDeath = new HashMap<String, Integer>(Bukkit.getMaxPlayers() * 3);
+    private final Map<String, Set<ItemStack>> retainedItemsAtDeath = new HashMap<String, Set<ItemStack>>(Bukkit.getMaxPlayers() * 3);
+    public final Map<String, EntityCoordinates> deathLocation = new HashMap<String, EntityCoordinates>(Bukkit.getMaxPlayers() * 3);
 
     public DeathHandler(@NotNull final DarkAgesPlugin plugin) {
         this.plugin = plugin;
@@ -35,25 +37,37 @@ public class DeathHandler implements Listener {
             savedExp = 0;
         }
         expAtDeath.put(event.getEntity().getName(), savedExp);
-        int soulStonesAtDeath = 0;
-        for (ItemStack item : event.getEntity().getInventory().getContents()) {
-            if (item != null && item.isSimilar(plugin.soulStoneItem)) {
-                soulStonesAtDeath += item.getAmount();
+        Set<ItemStack> retainedItems = new HashSet<ItemStack>(Ability.ABILITY_ITEMS.size());
+        for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
+            if (ability.getValue().isRetainedOnDeath()) {
+                ItemStack retainedItem = null;
+                for (ItemStack item : event.getEntity().getInventory().getContents()) {
+                    if (item != null && item.isSimilar(ability.getKey())) {
+                        if (retainedItem == null) {
+                            retainedItem = new ItemStack(ability.getKey());
+                            retainedItem.setAmount(item.getAmount());
+                        } else {
+                            retainedItem.setAmount(retainedItem.getAmount() + item.getAmount());
+                        }
+                    }
+                }
+                if (retainedItem != null) {
+                    retainedItems.add(retainedItem);
+                }
             }
+        }
+        if (!retainedItems.isEmpty()) {
+            retainedItemsAtDeath.put(event.getEntityType().getName(), retainedItems);
         }
         Iterator<ItemStack> drops = event.getDrops().iterator();
         if (drops.hasNext()) {
             for (ItemStack item = drops.next(); drops.hasNext(); item = drops.next()) {
-                if (item.isSimilar(plugin.soulStoneItem)) {
-                    System.out.println("removing soulstone from drop.");
-                    drops.remove();
+                for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
+                    if ((ability.getValue().isDestroyedOnDeath() || ability.getValue().isRetainedOnDeath()) && item.isSimilar(ability.getKey())) {
+                        drops.remove();
+                    }
                 }
             }
-        }
-        if (soulStonesAtDeath > 0) {
-            ItemStack soulStones = new ItemStack(plugin.soulStoneItem);
-            soulStones.setAmount(soulStonesAtDeath);
-            this.soulStonesAtDeath.put(event.getEntity().getName(), soulStones);
         }
         Location l = event.getEntity().getLocation();
         deathLocation.put(event.getEntity().getName(), Locations.getEntityCoordinates(l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getPitch(), l.getYaw()));
@@ -61,9 +75,11 @@ public class DeathHandler implements Listener {
 
     @EventHandler
     public void playerRespawn(PlayerRespawnEvent event) {
-        if (soulStonesAtDeath.containsKey(event.getPlayer().getName())) {
-            event.getPlayer().getInventory().addItem(soulStonesAtDeath.get(event.getPlayer().getName()));
-            soulStonesAtDeath.remove(event.getPlayer().getName());
+        if (retainedItemsAtDeath.containsKey(event.getPlayer().getName())) {
+            for (ItemStack item : retainedItemsAtDeath.get(event.getPlayer().getName())) {
+                event.getPlayer().getInventory().addItem(item);
+            }
+            retainedItemsAtDeath.remove(event.getPlayer().getName());
         }
     }
 }
