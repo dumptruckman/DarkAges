@@ -41,7 +41,6 @@ public class SoulStone extends Ability {
     @Override
     protected boolean onAbilityUse(final PlayerInteractEvent event) {
         final Player player = event.getPlayer();
-
         EntityCoordinates l = plugin.getDeathHandler().deathLocation.get(player.getName());
         Location loc = new Location(Bukkit.getWorld(l.getWorld()), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
         if (loc.getY() >= 0) {
@@ -58,7 +57,7 @@ public class SoulStone extends Ability {
         if (player.getItemInHand().getAmount() > 1) {
             player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 1);
         } else {
-            event.getPlayer().setItemInHand(null);
+            player.setItemInHand(null);
         }
 
         player.teleport(loc);

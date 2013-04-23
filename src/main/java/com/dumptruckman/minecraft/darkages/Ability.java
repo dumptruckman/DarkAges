@@ -23,6 +23,7 @@ public abstract class Ability {
     public static final String ABILITY_DESCRIPTION = ChatColor.GREEN + "Ability description: ";
     public static final String PREPARATION_COMPONENTS = ChatColor.YELLOW + "Preparation components: ";
     public static final String USAGE_COMPONENTS = ChatColor.GOLD + "Usage components: ";
+    public static final String COOLDOWN = ChatColor.WHITE + "Cooldown: ";
 
     public static final Map<ItemStack, Ability> LEARNING_ITEMS = new HashMap<ItemStack, Ability>(10);
     public static final Map<ItemStack, Ability> ABILITY_ITEMS = new HashMap<ItemStack, Ability>(10);
@@ -74,11 +75,12 @@ public abstract class Ability {
             }
         }
 
+        abilityTag = abilityInfo.magicColor() + SPELL_TAG + abilityInfo.name();
+
         this.learningItem = initializeLearningItemStack();
         this.abilityItem = initializeAbilityItemStack();
         LEARNING_ITEMS.put(learningItem, this);
         ABILITY_ITEMS.put(abilityItem, this);
-        abilityTag = abilityInfo.magicColor() + SPELL_TAG + abilityInfo.name();
     }
 
     private ItemStack initializeLearningItemStack() {
@@ -123,6 +125,9 @@ public abstract class Ability {
                 lore.add(ChatColor.GOLD + "  " + component.getKey().name().toLowerCase().replaceAll("_", " ") + "  x" + component.getValue());
             }
         }
+        if (abilityInfo.coolDown() > 0) {
+            lore.add(COOLDOWN + abilityInfo.coolDown() + " second" + (abilityInfo.coolDown() > 1 ? "s" : ""));
+        }
         lore.add("");
         lore.add(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Right click to use.");
         meta.setLore(lore);
@@ -145,6 +150,7 @@ public abstract class Ability {
         }
     }
 
+    @NotNull
     public String getAbilityTag() {
         return abilityTag;
     }
@@ -209,14 +215,14 @@ public abstract class Ability {
 
     public void useAbility(final PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        final String playerName = event.getPlayer().getName();
+        final String playerName = player.getName();
         if (!player.hasPermission(abilityInfo.permission())) {
             player.sendMessage(ChatColor.RED + "You do not have the knowledge required to use this ability!");
             return;
         }
         if (abilityInfo.coolDown() > 0 && coolDowns.containsKey(playerName)) {
             if (System.currentTimeMillis() - coolDowns.get(playerName) <= abilityInfo.coolDown() * 1000) {
-                System.out.println(ChatColor.RED + "That ability is on cooldown!");
+                player.sendMessage(ChatColor.RED + "That ability is on cooldown!");
                 return;
             }
         }
@@ -253,6 +259,7 @@ public abstract class Ability {
                     }
                 }
             }, abilityInfo.coolDown() * 20L);
+            coolDowns.put(playerName, System.currentTimeMillis());
         }
     }
 

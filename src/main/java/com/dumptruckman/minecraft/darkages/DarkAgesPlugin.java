@@ -24,7 +24,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin {
         mainMenu = new LearningMenu(this).buildMenu();
         new AbilityUseListener(this);
         deathHandler = new DeathHandler(this);
-        new ItemUpdateListener(this);
+        new ItemUpdateAndDropListener(this);
 
         // Setup souls tone recipe
         ShapelessRecipe soulStoneRecipe = new ShapelessRecipe(new ItemStack(soulStoneItem));

@@ -1,5 +1,9 @@
 package com.dumptruckman.minecraft.darkages;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -13,12 +17,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public class ItemUpdateListener implements Listener {
+public class ItemUpdateAndDropListener implements Listener {
 
     @NotNull
     private final DarkAgesPlugin plugin;
 
-    public ItemUpdateListener(@NotNull final DarkAgesPlugin plugin) {
+    public ItemUpdateAndDropListener(@NotNull final DarkAgesPlugin plugin) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -26,16 +30,29 @@ public class ItemUpdateListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void inventoryClick(InventoryClickEvent event) {
         ItemStack currentItem = event.getCurrentItem();
-        if (currentItem != null && currentItem.hasItemMeta()) {
-            ItemMeta meta = currentItem.getItemMeta();
-            if (!meta.getLore().isEmpty()) {
-                for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
-                    if (meta.getLore().get(0).equals(ability.getValue().getAbilityTag())) {
-                        int amount = currentItem.getAmount();
-                        currentItem = new ItemStack(ability.getKey());
-                        currentItem.setAmount(amount);
-                        event.setCurrentItem(currentItem);
-                        break;
+        if (event.getWhoClicked() instanceof Player) {
+            if (currentItem != null && currentItem.hasItemMeta()) {
+                ItemMeta meta = currentItem.getItemMeta();
+                if (!meta.getLore().isEmpty()) {
+                    final String tag = meta.getLore().get(0);
+                    for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
+                        if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
+                            int amount = currentItem.getAmount();
+                            currentItem = new ItemStack(ability.getKey());
+                            currentItem.setAmount(amount);
+                            event.setCurrentItem(currentItem);
+                            final Player player = (Player) event.getWhoClicked();
+                            player.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "This item has been updated to reflect changes in it's properties.  Please try again.");
+                            event.setCancelled(true);
+                            event.setResult(Result.DENY);
+                            Bukkit.getScheduler().runTask(plugin, new Runnable() {
+                                @Override
+                                public void run() {
+                                    player.updateInventory();
+                                }
+                            });
+                            return;
+                        }
                     }
                 }
             }
@@ -63,12 +80,14 @@ public class ItemUpdateListener implements Listener {
         if (currentItem != null && currentItem.hasItemMeta()) {
             ItemMeta meta = currentItem.getItemMeta();
             if (!meta.getLore().isEmpty()) {
+                final String tag = meta.getLore().get(0);
                 for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
-                    if (meta.getLore().get(0).equals(ability.getValue().getAbilityTag())) {
+                    if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
                         int amount = currentItem.getAmount();
                         currentItem = new ItemStack(ability.getKey());
                         currentItem.setAmount(amount);
                         event.getPlayer().setItemInHand(currentItem);
+                        event.getPlayer().sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "This item has been updated to reflect changes in it's properties.  Please try again.");
                         break;
                     }
                 }
