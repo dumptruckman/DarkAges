@@ -43,11 +43,18 @@ public class Ambush extends Ability {
     @Override
     protected boolean onAbilityUse(final PlayerInteractEvent event) {
         final Player player = event.getPlayer();
+
         LivingEntity target = EntityTools.getTargetedLivingEntity(player, 15);
         if (target == null) {
             player.sendMessage("No target or not close enough!");
             return false;
         }
+        final Location loc = player.getLocation();
+        final Location tLoc = target.getLocation();
+        //double xDiff = tLoc.getX() - loc.getX();
+        //double zDiff = tLoc.getZ() - loc.getZ();
+
+        //loc = new Location(tLoc.getWorld(), tLoc.getX() > loc.getX() ? tLoc.getX() + 1 : tLoc.getX() - 1)
         return true;
     }
 }

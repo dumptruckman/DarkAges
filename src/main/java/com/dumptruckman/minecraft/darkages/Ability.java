@@ -171,12 +171,12 @@ public abstract class Ability {
                 }
                 for (Map.Entry<Material, Integer> component : actualPreparationComponents.entrySet()) {
                     if (!player.getInventory().contains(component.getKey(), component.getValue())) {
-                        player.sendMessage(ChatColor.RED + "You do not have the required components to prepare this spell!");
+                        player.sendMessage(ChatColor.RED + "You do not have the required components to prepare this ability!");
                         return;
                     }
                 }
                 if (!player.getInventory().addItem(new ItemStack(abilityItem)).isEmpty()) {
-                    player.sendMessage(ChatColor.RED + "You do not have room in your inventory to prepare this spell!");
+                    player.sendMessage(ChatColor.RED + "You do not have room in your inventory to prepare this ability!");
                 }
                 for (Map.Entry<Material, Integer> component : actualPreparationComponents.entrySet()) {
                     player.getInventory().remove(new ItemStack(component.getKey(), component.getValue()));
@@ -217,6 +217,12 @@ public abstract class Ability {
         if (abilityInfo.coolDown() > 0 && coolDowns.containsKey(playerName)) {
             if (System.currentTimeMillis() - coolDowns.get(playerName) <= abilityInfo.coolDown() * 1000) {
                 System.out.println(ChatColor.RED + "That ability is on cooldown!");
+                return;
+            }
+        }
+        for (Map.Entry<Material, Integer> component : actualUsageComponents.entrySet()) {
+            if (!player.getInventory().contains(component.getKey(), component.getValue())) {
+                player.sendMessage(ChatColor.RED + "You do not have the required components to use this ability!");
                 return;
             }
         }
