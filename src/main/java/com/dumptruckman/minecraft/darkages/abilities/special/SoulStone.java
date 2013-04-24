@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerInteractEvent;
 
 @AbilityInfo(
         name = "Soul Stone",
@@ -36,8 +35,7 @@ public class SoulStone extends Ability {
     }
 
     @Override
-    protected boolean canUseAbility(final PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
+    protected boolean canUseAbility(final Player player) {
         if (!plugin.getDeathHandler().deathLocation.containsKey(player.getName())) {
             player.sendMessage(ChatColor.RED + "You do not have a recent death to return to!");
             return false;
@@ -46,8 +44,7 @@ public class SoulStone extends Ability {
     }
 
     @Override
-    protected boolean onAbilityUse(final PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
+    protected boolean onAbilityUse(final Player player) {
         EntityCoordinates l = plugin.getDeathHandler().deathLocation.get(player.getName());
         Location loc = new Location(Bukkit.getWorld(l.getWorld()), l.getX(), l.getY(), l.getZ(), l.getYaw(), l.getPitch());
         if (loc.getY() >= 0) {

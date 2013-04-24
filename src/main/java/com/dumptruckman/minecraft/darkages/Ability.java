@@ -11,6 +11,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -312,7 +315,7 @@ public abstract class Ability {
     }
 
     public void useAbility(final PlayerInteractEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         final String playerName = player.getName();
         if (!player.hasPermission(abilityInfo.permission())) {
             player.sendMessage(ChatColor.RED + "You do not have the knowledge required to use this ability!");
@@ -330,26 +333,54 @@ public abstract class Ability {
                 return;
             }
         }
-        if (canUseAbility(event)) {
+        if (canUseAbility(player)) {
             if (abilityInfo.castTime() <= 0) {
-                if (onAbilityUse(event)) {
-                    if (abilityInfo.consumesAbilityItem()) {
-                        InventoryTools.remove(player.getInventory(), new ItemStack(abilityItem));
-                        if (abilityInfo.usageComponents().length <= 0) {
-                            player.updateInventory();
-                        }
-                    }
+                if (onAbilityUse(player)) {
                     abilityUsed(player);
                 }
             } else {
-                if (abilityInfo.consumesAbilityItem()) {
-                    InventoryTools.remove(player.getInventory(), new ItemStack(abilityItem));
+                CastingTask task = new CastingTask(plugin, player, this);
+                try {
+                    task.runTaskLater(plugin, abilityInfo.castTime() * 20L);
+                } catch (IllegalStateException e) {
+                    player.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD + "Something went wrong!!!");
+                    return;
                 }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, abilityInfo.castTime() * 20, 1, true));
+                plugin.playersCasting.put(player.getName(), task);
             }
         }
     }
 
+    public static class CastingTask extends BukkitRunnable {
+        private final DarkAgesPlugin plugin;
+        public final Player player;
+        public final Ability ability;
+        public final boolean alreadyConfused;
+
+        private CastingTask(final DarkAgesPlugin plugin, final Player player, final Ability ability) {
+            this.plugin = plugin;
+            this.player = player;
+            this.ability = ability;
+            this.alreadyConfused = player.hasPotionEffect(PotionEffectType.CONFUSION);
+        }
+
+        @Override
+        public void run() {
+            if (!alreadyConfused) {
+                player.removePotionEffect(PotionEffectType.CONFUSION);
+            }
+            ability.onAbilityUse(player);
+        }
+    }
+
     private void abilityUsed(final Player player) {
+        if (abilityInfo.consumesAbilityItem()) {
+            InventoryTools.remove(player.getInventory(), new ItemStack(abilityItem));
+            if (abilityInfo.usageComponents().length <= 0) {
+                player.updateInventory();
+            }
+        }
         if (abilityInfo.cooldown() > 0) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
                 @Override
@@ -370,7 +401,7 @@ public abstract class Ability {
 
     protected abstract int getLevel();
 
-    protected abstract boolean canUseAbility(PlayerInteractEvent event);
+    protected abstract boolean canUseAbility(Player player);
 
-    protected abstract boolean onAbilityUse(PlayerInteractEvent event);
+    protected abstract boolean onAbilityUse(Player player);
 }

@@ -1,14 +1,11 @@
-package com.dumptruckman.minecraft.darkages.abilities.skills;
+package com.dumptruckman.minecraft.darkages.abilities.spells;
 
 import com.dumptruckman.minecraft.darkages.Ability;
 import com.dumptruckman.minecraft.darkages.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
@@ -16,24 +13,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 @AbilityInfo(
-        name = "Ambush",
-        magicColor = ChatColor.WHITE,
-        type = AbilityType.SKILL,
-        description = "Teleports you to the other\nside of a nearby targeted enemy.",
-        permission = "darkages.abilities.skills.ambush",
-        material = Material.ARROW,
+        name = "Beag Ioc",
+        magicColor = ChatColor.BLUE,
+        type = AbilityType.SPELL,
+        description = "Heals you or your target\nfor a small amount.",
+        permission = "darkages.abilities.spells.beagioc",
+        material = Material.POTION,
         levelCost = 5,
-        usageComponents = Material.ARROW,
-        cooldown = 7,
-        inventoryLimit = 1,
-        consumesAbilityItem = false,
-        destroyedOnDeath = true
+        usageComponents = Material.POTION,
+        castTime = 1,
+        consumesAbilityItem = true,
+        allowDrop = true
 )
-public class Ambush extends Ability {
+public class BeagIoc extends Ability {
 
-    private static final int RANGE = 9;
+    private static final int RANGE = 50;
+    private static final int HEAL_AMOUNT = 2;
 
-    public Ambush(final DarkAgesPlugin plugin) {
+    public BeagIoc(final DarkAgesPlugin plugin) {
         super(plugin);
     }
 
@@ -44,72 +41,34 @@ public class Ambush extends Ability {
 
     @Override
     protected boolean canUseAbility(final Player player) {
+        LivingEntity target = EntityTools.getTargetedLivingEntity(player, RANGE);
+        if (target == null) {
+            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Targetting self...");
+            target = player;
+        } else {
+            if (!(target instanceof Player)) {
+                player.sendMessage(ChatColor.RED + "Can only target players!");
+                return false;
+            }
+        }
+        plugin.castingTargets.put(player.getName(), target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = EntityTools.getTargetedLivingEntity(player, RANGE);
-        if (target == null) {
-            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "No target or not close enough!");
+        LivingEntity target = plugin.castingTargets.get(player.getName());
+        if (target == null || !(target instanceof Player)) {
+            player.sendMessage(ChatColor.RED + "Your target was lost!");
             return false;
         }
-        Location tpLoc = null;
-        Vector tVec = target.getLocation().toVector();
-        Vector dir = player.getLocation().getDirection();
-        dir = dir.setY(0).normalize();
-        final World world = target.getWorld();
-        Vector newVector = tVec.clone().add(dir);
-        Block block = getSafestBlock(world, newVector);
-        if (block != null) {
-            Vector newDir = dir.clone();
-            double z = newDir.getZ();
-            newDir.setZ(-newDir.getX());
-            newDir.setX(z);
-            tpLoc = getTeleportLocation(block, tVec, newVector, newDir);
-        } else {
-            Vector newDir = dir.clone();
-            double z = newDir.getZ();
-            newDir.setZ(newDir.getX());
-            newDir.setX(-z);
-            newVector = tVec.clone().add(newDir);
-            block = getSafestBlock(world, newVector);
-            if (block != null) {
-                z = newDir.getZ();
-                newDir.setZ(-newDir.getX());
-                newDir.setX(z);
-                tpLoc = getTeleportLocation(block, tVec, newVector, newDir);
-            } else {
-                newDir = dir.clone();
-                z = newDir.getZ();
-                newDir.setZ(-newDir.getX());
-                newDir.setX(z);
-                newVector = tVec.clone().add(newDir);
-                block = getSafestBlock(world, newVector);
-                if (block != null) {
-                    z = newDir.getZ();
-                    newDir.setZ(-newDir.getX());
-                    newDir.setX(z);
-                    tpLoc = getTeleportLocation(block, tVec, newVector, newDir);
-                } else {
-                    newVector = tVec.clone().subtract(dir);
-                    block = getSafestBlock(world, newVector);
-                    if (block != null) {
-                        newDir.setZ(-newDir.getZ());
-                        newDir.setX(-newDir.getX());
-                        tpLoc = getTeleportLocation(block, tVec, newVector, newDir);
-                    }
-                }
-            }
+        int newHealth = target.getHealth();
+        newHealth += HEAL_AMOUNT;
+        if (newHealth > 20) {
+            newHealth = 20;
         }
-        System.out.println(tpLoc);
-        if (tpLoc != null) {
-            player.teleport(tpLoc);
-        } else {
-            player.sendMessage(ChatColor.RED + "No safe place to move to!");
-            return false;
-        }
-
+        target.setHealth(newHealth);
+        ((Player) target).playEffect(target.getLocation(), Effect.GHAST_SHRIEK, 0);
         return true;
     }
 

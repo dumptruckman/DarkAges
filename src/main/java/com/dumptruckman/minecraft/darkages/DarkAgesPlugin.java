@@ -3,6 +3,7 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
 import com.dumptruckman.minecraft.darkages.abilities.skills.Ambush;
 import com.dumptruckman.minecraft.darkages.abilities.special.SoulStone;
+import com.dumptruckman.minecraft.darkages.abilities.spells.BeagIoc;
 import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
@@ -10,14 +11,18 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin {
 
@@ -26,6 +31,9 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin {
     private Permission permission;
 
     public ItemStack soulStoneItem;
+
+    public Map<String, Ability.CastingTask> playersCasting = new HashMap<String, Ability.CastingTask>(Bukkit.getMaxPlayers());
+    public Map<String, LivingEntity> castingTargets = new HashMap<String, LivingEntity>(Bukkit.getMaxPlayers());
 
     @Override
     public void onEnable() {
@@ -66,6 +74,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin {
         SoulStone soulStone = new SoulStone(this);
         this.soulStoneItem = soulStone.abilityItem;
         new Ambush(this);
+        new BeagIoc(this);
     }
 
     @Override
