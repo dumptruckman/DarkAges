@@ -35,7 +35,7 @@ public class ItemUpdateAndDropListener implements Listener {
         if (event.getWhoClicked() instanceof Player) {
             if (currentItem != null && currentItem.hasItemMeta()) {
                 ItemMeta meta = currentItem.getItemMeta();
-                if (!meta.getLore().isEmpty()) {
+                if (meta != null && meta.getLore() != null && meta.getLore().isEmpty()) {
                     final String tag = meta.getLore().get(0);
                     Set<Map.Entry<ItemStack, Ability>> abilitySet;
                     if (currentItem.getType() == Material.PAPER) {
@@ -87,7 +87,7 @@ public class ItemUpdateAndDropListener implements Listener {
         ItemStack currentItem = event.getPlayer().getItemInHand();
         if (currentItem != null && currentItem.hasItemMeta()) {
             ItemMeta meta = currentItem.getItemMeta();
-            if (!meta.getLore().isEmpty()) {
+            if (meta != null && meta.getLore() != null && !meta.getLore().isEmpty()) {
                 final String tag = meta.getLore().get(0);
                 Set<Map.Entry<ItemStack, Ability>> abilitySet;
                 if (currentItem.getType() == Material.PAPER) {
