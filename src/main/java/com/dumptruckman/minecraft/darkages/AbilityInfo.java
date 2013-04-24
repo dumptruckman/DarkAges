@@ -1,5 +1,6 @@
 package com.dumptruckman.minecraft.darkages;
 
+import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -14,16 +15,16 @@ public @interface AbilityInfo {
 
     String name();
     ChatColor magicColor();
+    AbilityType type();
     String description();
     String permission();
     Material material();
+    int levelCost();
     Material[] prepareComponents() default {};
     Material[] usageComponents() default {};
     int castTime() default 0;
-    int coolDown() default 0;
-    int expCost() default 0;
+    int cooldown() default 0;
     Class<? extends Ability>[] requirements() default {};
-    boolean isHidden() default false;
     int inventoryLimit() default 0;
     boolean consumesAbilityItem() default true;
     boolean destroyedOnDeath() default false;

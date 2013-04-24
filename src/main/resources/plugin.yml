@@ -6,9 +6,11 @@ depend: [Vault]
 commands:
   darkages:
     description: Main item menu.
-    permission: darkages.menu
-  abilitybook:
-    description: Shows all of your known abilities.
+    permission: darkages.adminmenu
+  skills:
+    description: Shows all of your known skills.
+  spells:
+    description: Shows all of your known spells.
 
 permissions:
   darkages.abilities.*:

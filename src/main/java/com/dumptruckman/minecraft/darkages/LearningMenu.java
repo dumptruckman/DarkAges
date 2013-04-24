@@ -3,8 +3,7 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.actionmenu.MenuItem;
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
-import com.dumptruckman.minecraft.darkages.abilities.skills.Ambush;
-import com.dumptruckman.minecraft.darkages.abilities.spells.SoulStone;
+import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
 
 public class LearningMenu {
 
@@ -20,6 +19,12 @@ public class LearningMenu {
 
         // Create main menu "go back" button
         final MenuItem goBackToMainMenuMenuItem = SubMenuConfigurator.createGoBackMenuItem(mainMenu);
+
+        for (Ability ability : Ability.ABILITY_ITEMS.values()) {
+            if (ability.abilityInfo.type() == AbilityType.SPECIAL) {
+                mainMenu.addItem(ability.createAbilityMenuItem());
+            }
+        }
 
         // Create the Skill menu and add to main menu
         final SingleViewMenu skillsMenu = initializeSkillsMenu();
@@ -37,8 +42,11 @@ public class LearningMenu {
     private SingleViewMenu initializeSkillsMenu() {
         final SingleViewMenu skillsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Skills", 9);
 
-        // Add skills to menu
-        skillsMenu.addItem(new Ambush(plugin).createLearningMenuItem());
+        for (Ability ability : Ability.ABILITY_ITEMS.values()) {
+            if (ability.abilityInfo.type() == AbilityType.SKILL) {
+                skillsMenu.addItem(ability.createLearningMenuItem());
+            }
+        }
 
         return skillsMenu;
     }
@@ -46,10 +54,11 @@ public class LearningMenu {
     private SingleViewMenu initializeSpellsMenu() {
         final SingleViewMenu spellsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Spells", 9);
 
-        // Add skills to menu
-        MenuItem soulStoneMenuItem = new SoulStone(plugin).createLearningMenuItem();
-        plugin.soulStoneItem = soulStoneMenuItem.getItemStack(); // Store the soul stone itemstack for reference
-        spellsMenu.addItem(soulStoneMenuItem);
+        for (Ability ability : Ability.ABILITY_ITEMS.values()) {
+            if (ability.abilityInfo.type() == AbilityType.SPELL) {
+                spellsMenu.addItem(ability.createLearningMenuItem());
+            }
+        }
 
         return spellsMenu;
     }

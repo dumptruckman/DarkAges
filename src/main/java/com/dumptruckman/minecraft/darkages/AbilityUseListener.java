@@ -36,6 +36,11 @@ public class AbilityUseListener implements Listener {
             Ability ability = Ability.ABILITY_ITEMS.get(item);
             if (ability != null) {
                 ability.useAbility(event);
+            } else {
+                ability = Ability.LEARNING_ITEMS.get(item);
+                if (ability != null) {
+                    ability.learnAbility(event.getPlayer());
+                }
             }
         }
     }

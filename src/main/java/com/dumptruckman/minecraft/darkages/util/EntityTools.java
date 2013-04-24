@@ -81,7 +81,6 @@ public class EntityTools {
                     double lineDist = Math.sqrt(n1.distanceSquared(n0) - distance * distance);
                     if (lineDist < 1) { // Tolerance value of within 1 blocks of the line.
                         if (distance < nearestDistance) {
-                            /*
                             // Make sure the targeted block is not closer
                             Block block = entity.getTargetBlock(TRANSPARENT_BLOCKS, maxDistance);
                             if (block != null) {
@@ -90,11 +89,11 @@ public class EntityTools {
                                 if (dist2 > 0 && dist2 < distance) {
                                     continue; // targeted block is closer than entity
                                 }
-                            }*/
-                            if (entity.hasLineOfSight(e)) {
-                                nearestDistance = distance;
-                                nearest = livingEntity;
                             }
+                            //if (entity.hasLineOfSight(e)) {  // Doesn't work.. can target through dirt
+                            nearestDistance = distance;
+                            nearest = livingEntity;
+                            //}
                         }
                     }
                 }

@@ -1,8 +1,9 @@
-package com.dumptruckman.minecraft.darkages.abilities.spells;
+package com.dumptruckman.minecraft.darkages.abilities.special;
 
 import com.dumptruckman.minecraft.darkages.Ability;
 import com.dumptruckman.minecraft.darkages.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
 import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,10 +16,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 @AbilityInfo(
         name = "Soul Stone",
         magicColor = ChatColor.DARK_GRAY,
+        type = AbilityType.SPECIAL,
         description = "Teleports you to the\nplace of your last death.\nThis item remains on death.",
         permission = "darkages.abilities.spells.soulstone",
         material = Material.GHAST_TEAR,
-        isHidden = true,
+        levelCost = 0,
         retainOnDeath = true,
         allowDrop = true
 )
@@ -26,6 +28,11 @@ public class SoulStone extends Ability {
 
     public SoulStone(final DarkAgesPlugin plugin) {
         super(plugin);
+    }
+
+    @Override
+    protected int getLevel() {
+        return 1;
     }
 
     @Override

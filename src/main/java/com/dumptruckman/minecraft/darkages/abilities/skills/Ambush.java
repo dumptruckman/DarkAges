@@ -3,10 +3,8 @@ package com.dumptruckman.minecraft.darkages.abilities.skills;
 import com.dumptruckman.minecraft.darkages.Ability;
 import com.dumptruckman.minecraft.darkages.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
-import com.dumptruckman.minecraft.pluginbase.minecraft.Entity;
-import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,17 +16,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @AbilityInfo(
         name = "Ambush",
         magicColor = ChatColor.WHITE,
+        type = AbilityType.SKILL,
         description = "Teleports you to the other\nside of a nearby targeted enemy.",
         permission = "darkages.abilities.skills.ambush",
         material = Material.ARROW,
+        levelCost = 10,
         usageComponents = Material.ARROW,
-        coolDown = 8,
+        cooldown = 10,
         inventoryLimit = 1,
         consumesAbilityItem = false,
         destroyedOnDeath = true
@@ -39,6 +36,11 @@ public class Ambush extends Ability {
 
     public Ambush(final DarkAgesPlugin plugin) {
         super(plugin);
+    }
+
+    @Override
+    protected int getLevel() {
+        return 1;
     }
 
     @Override

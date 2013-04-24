@@ -23,7 +23,7 @@ public class SubMenuConfigurator {
     static SingleViewMenu createNewSubMenu(final Plugin plugin,
                                            final String title,
                                            final int inventorySize) {
-        final SingleViewMenu menu = Menus.createSimpleInventoryMenu(plugin, "Right click to see " + title, inventorySize);
+        final SingleViewMenu menu = Menus.createSimpleInventoryMenu(plugin, "Click to see " + title, inventorySize);
         menu.setAction(new Action() {
             @Override
             public void performAction(@Nullable final org.bukkit.entity.Player player) {
@@ -38,14 +38,13 @@ public class SubMenuConfigurator {
     private static ItemStack getAbilityContainerItem(String title) {
         ItemStack item = new ItemStack(Material.CHEST);
         ItemMeta meta = item.getItemMeta();
-        meta = item.getItemMeta();
         meta.setDisplayName(title);
         item.setItemMeta(meta);
         return item;
     }
 
     static MenuItem createGoBackMenuItem(final SingleViewMenu parentMenu) {
-        return new MenuItem("Right click to go back to the previous menu")
+        return new MenuItem("Click to go back to the previous menu")
                 .setItemStack(new ItemStack(GO_BACK_ITEM_STACK))
                 .setAction(new Action() {
                     @Override

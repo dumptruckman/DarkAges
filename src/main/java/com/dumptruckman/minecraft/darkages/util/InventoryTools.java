@@ -46,6 +46,24 @@ public class InventoryTools {
         return items;
     }
 
+    public static boolean contains(final Inventory inventory, final ItemStack itemStack) {
+        final HashMap<Integer, ? extends ItemStack> allItems = inventory.all(itemStack.getType());
+        int foundAmount = 0;
+        for (Map.Entry<Integer, ? extends ItemStack> item : allItems.entrySet()) {
+            if (item.getValue().isSimilar(itemStack)) {
+                if (item.getValue().getAmount() >= itemStack.getAmount() - foundAmount) {
+                    foundAmount = itemStack.getAmount();
+                } else {
+                    foundAmount += item.getValue().getAmount();
+                }
+                if (foundAmount >= itemStack.getAmount()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static boolean remove(final Inventory inventory, final ItemStack itemStack) {
         final HashMap<Integer, ? extends ItemStack> allItems = inventory.all(itemStack.getType());
         final HashMap<Integer, Integer> removeFrom = new HashMap<Integer, Integer>(allItems.size());

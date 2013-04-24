@@ -6,6 +6,7 @@ import com.dumptruckman.minecraft.darkages.util.InventoryTools;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -23,7 +24,10 @@ public abstract class Ability {
     public static final String ABILITY_DESCRIPTION = ChatColor.GREEN + "Ability description: ";
     public static final String PREPARATION_COMPONENTS = ChatColor.YELLOW + "Preparation components: ";
     public static final String USAGE_COMPONENTS = ChatColor.GOLD + "Usage components: ";
+    public static final String CASTTIME = ChatColor.WHITE + "Cast time: ";
     public static final String COOLDOWN = ChatColor.WHITE + "Cooldown: ";
+    public static final String REQUIRES_LEVELS = ChatColor.AQUA + "Level cost: ";
+    public static final String REQUIRED_SKILLS = ChatColor.DARK_PURPLE + "Must know: ";
 
     public static final Map<ItemStack, Ability> LEARNING_ITEMS = new HashMap<ItemStack, Ability>(10);
     public static final Map<ItemStack, Ability> ABILITY_ITEMS = new HashMap<ItemStack, Ability>(10);
@@ -37,9 +41,9 @@ public abstract class Ability {
     @NotNull
     protected final ItemStack abilityItem;
     @NotNull
-    protected final Map<Material, Integer> actualPreparationComponents;
+    protected final Set<ItemStack> actualPreparationComponents;
     @NotNull
-    protected final Map<Material, Integer> actualUsageComponents;
+    protected final Set<ItemStack> actualUsageComponents;
     @NotNull
     protected final Map<String, Long> coolDowns = new HashMap<String, Long>(Bukkit.getMaxPlayers() * 2);
     @NotNull
@@ -53,25 +57,35 @@ public abstract class Ability {
         }
         this.abilityInfo = abilityInfo;
 
-        this.actualPreparationComponents = new HashMap<Material, Integer>(abilityInfo.prepareComponents().length);
+        this.actualPreparationComponents = new HashSet<ItemStack>(abilityInfo.prepareComponents().length);
         for (Material component : abilityInfo.prepareComponents()) {
-            if (actualPreparationComponents.containsKey(component)) {
-                int count = actualPreparationComponents.get(component);
-                count++;
-                actualPreparationComponents.put(component, count);
+            ItemStack item = null;
+            for (ItemStack i : actualPreparationComponents) {
+                if (i.getType() == component) {
+                    item = i;
+                    break;
+                }
+            }
+            if (item == null) {
+                this.actualPreparationComponents.add(new ItemStack(component));
             } else {
-                actualPreparationComponents.put(component, 1);
+                item.setAmount(item.getAmount());
             }
         }
 
-        this.actualUsageComponents = new HashMap<Material, Integer>(abilityInfo.usageComponents().length);
+        this.actualUsageComponents = new HashSet<ItemStack>(abilityInfo.usageComponents().length);
         for (Material component : abilityInfo.usageComponents()) {
-            if (actualUsageComponents.containsKey(component)) {
-                int count = actualUsageComponents.get(component);
-                count++;
-                actualUsageComponents.put(component, count);
+            ItemStack item = null;
+            for (ItemStack i : actualUsageComponents) {
+                if (i.getType() == component) {
+                    item = i;
+                    break;
+                }
+            }
+            if (item == null) {
+                this.actualUsageComponents.add(new ItemStack(component));
             } else {
-                actualUsageComponents.put(component, 1);
+                item.setAmount(item.getAmount());
             }
         }
 
@@ -83,17 +97,45 @@ public abstract class Ability {
         ABILITY_ITEMS.put(abilityItem, this);
     }
 
+    /*****************
+     * LEARNING ITEM *
+     *****************/
     private ItemStack initializeLearningItemStack() {
         final ItemStack item = new ItemStack(LEARNING_MATERIAL);
         final ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.BLUE + "Learn " + abilityInfo.name());
-        List<String> lore = new ArrayList<String>(10);
-        lore.add(getAbilityTag());
+        List<String> lore = new ArrayList<String>(20);
+        lore.add(getAbilityTag()); // This has to be the first lore!
+        if (CustomEnchantment.okayToEnchant) {
+            meta.addEnchant(abilityInfo.type().getEnchantment(), getLevel(), true);
+        } else {
+            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            switch (abilityInfo.type()) {
+                case SKILL:
+                    lore.add(ChatColor.GRAY + "Skill");
+                    break;
+                case SPELL:
+                    lore.add(ChatColor.GRAY + "Spell");
+                    break;
+                default:
+                    lore.add(ChatColor.GRAY + "Special");
+            }
+        }
         lore.add(LEARN_STRING + abilityInfo.name());
         lore.add(ABILITY_DESCRIPTION);
         String[] desc = abilityInfo.description().split("\n");
         for (String descString : desc) {
             lore.add(ChatColor.GREEN + "  " + descString);
+        }
+        lore.add(REQUIRES_LEVELS + abilityInfo.levelCost());
+        if (abilityInfo.requirements().length > 0) {
+            lore.add(REQUIRED_SKILLS);
+            for (Class<? extends Ability> abilityClass : abilityInfo.requirements()) {
+                AbilityInfo requirementInfo = abilityClass.getAnnotation(AbilityInfo.class);
+                if (requirementInfo != null) {
+                    lore.add(ChatColor.DARK_PURPLE + "  " + requirementInfo.name());
+                }
+            }
         }
         lore.add("");
         lore.add(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Right click to learn.");
@@ -102,12 +144,30 @@ public abstract class Ability {
         return item;
     }
 
+    /****************
+     * ABILITY ITEM *
+     ****************/
     private ItemStack initializeAbilityItemStack() {
         final ItemStack item = new ItemStack(abilityInfo.material());
         final ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(abilityInfo.magicColor() + abilityInfo.name());
-        List<String> lore = new ArrayList<String>(10);
-        lore.add(getAbilityTag());
+        List<String> lore = new ArrayList<String>(20);
+        lore.add(getAbilityTag()); // This has to be the first lore!
+        if (CustomEnchantment.okayToEnchant) {
+            meta.addEnchant(abilityInfo.type().getEnchantment(), getLevel(), true);
+        } else {
+            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            switch (abilityInfo.type()) {
+                case SKILL:
+                    lore.add(ChatColor.GRAY + "Skill");
+                    break;
+                case SPELL:
+                    lore.add(ChatColor.GRAY + "Spell");
+                    break;
+                default:
+                    lore.add(ChatColor.GRAY + "Special");
+            }
+        }
         lore.add(ABILITY_DESCRIPTION);
         String[] desc = abilityInfo.description().split("\n");
         for (String descString : desc) {
@@ -115,18 +175,30 @@ public abstract class Ability {
         }
         if (abilityInfo.prepareComponents().length > 0) {
             lore.add(PREPARATION_COMPONENTS);
-            for (Map.Entry<Material, Integer> component : actualPreparationComponents.entrySet()) {
-                lore.add(ChatColor.YELLOW + "  " + component.getKey().name().toLowerCase().replaceAll("_", " ") + "  x" + component.getValue());
+            for (ItemStack component : actualPreparationComponents) {
+                lore.add(ChatColor.YELLOW + "  " + component.getType().name().toLowerCase().replaceAll("_", " ") + "  x" + component.getAmount());
             }
         }
         if (abilityInfo.usageComponents().length > 0) {
             lore.add(USAGE_COMPONENTS);
-            for (Map.Entry<Material, Integer> component : actualUsageComponents.entrySet()) {
-                lore.add(ChatColor.GOLD + "  " + component.getKey().name().toLowerCase().replaceAll("_", " ") + "  x" + component.getValue());
+            for (ItemStack component : actualUsageComponents) {
+                lore.add(ChatColor.GOLD + "  " + component.getType().name().toLowerCase().replaceAll("_", " ") + "  x" + component.getAmount());
             }
         }
-        if (abilityInfo.coolDown() > 0) {
-            lore.add(COOLDOWN + abilityInfo.coolDown() + " second" + (abilityInfo.coolDown() > 1 ? "s" : ""));
+        if (abilityInfo.castTime() > 0) {
+            lore.add(CASTTIME + abilityInfo.castTime() + " second" + (abilityInfo.castTime() > 1 ? "s" : ""));
+        }
+        if (abilityInfo.cooldown() > 0) {
+            lore.add(COOLDOWN + abilityInfo.cooldown() + " second" + (abilityInfo.cooldown() > 1 ? "s" : ""));
+        }
+        if (abilityInfo.retainOnDeath()) {
+            lore.add(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "Remains on death");
+        }
+        if (abilityInfo.destroyedOnDeath()) {
+            lore.add(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "Destroyed on death");
+        }
+        if (!abilityInfo.allowDrop()) {
+            lore.add(ChatColor.DARK_RED.toString() + ChatColor.BOLD + "Soulbound");
         }
         lore.add("");
         lore.add(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Right click to use.");
@@ -136,18 +208,14 @@ public abstract class Ability {
     }
 
     public MenuItem createLearningMenuItem() {
-        if (!actualPreparationComponents.isEmpty()) {
-            return new MenuItem("Right click to obtain learning item").setItemStack(learningItem).setAction(new Action() {
-                @Override
-                public void performAction(@Nullable final Player player) {
-                    if (player != null) {
-                        player.getInventory().addItem(new ItemStack(learningItem));
-                    }
+        return new MenuItem("Click to obtain learning item").setItemStack(learningItem).setAction(new Action() {
+            @Override
+            public void performAction(@Nullable final Player player) {
+                if (player != null) {
+                    player.getInventory().addItem(new ItemStack(learningItem));
                 }
-            });
-        } else {
-            return createAbilityMenuItem();
-        }
+            }
+        });
     }
 
     @NotNull
@@ -156,7 +224,7 @@ public abstract class Ability {
     }
 
     public MenuItem createAbilityMenuItem() {
-        return new MenuItem("Right click to obtain usage item").setItemStack(abilityItem).setAction(new Action() {
+        return new MenuItem("Click to obtain usage item").setItemStack(abilityItem).setAction(new Action() {
             @Override
             public void performAction(@Nullable final Player player) {
                 if (player == null) {
@@ -175,8 +243,8 @@ public abstract class Ability {
                         return;
                     }
                 }
-                for (Map.Entry<Material, Integer> component : actualPreparationComponents.entrySet()) {
-                    if (!player.getInventory().contains(component.getKey(), component.getValue())) {
+                for (ItemStack component : actualPreparationComponents) {
+                    if (!InventoryTools.contains(player.getInventory(), component)) {
                         player.sendMessage(ChatColor.RED + "You do not have the required components to prepare this ability!");
                         return;
                     }
@@ -184,8 +252,8 @@ public abstract class Ability {
                 if (!player.getInventory().addItem(new ItemStack(abilityItem)).isEmpty()) {
                     player.sendMessage(ChatColor.RED + "You do not have room in your inventory to prepare this ability!");
                 }
-                for (Map.Entry<Material, Integer> component : actualPreparationComponents.entrySet()) {
-                    player.getInventory().remove(new ItemStack(component.getKey(), component.getValue()));
+                for (ItemStack component : actualPreparationComponents) {
+                    InventoryTools.remove(player.getInventory(), component);
                 }
             }
         });
@@ -213,6 +281,36 @@ public abstract class Ability {
         return abilityInfo.allowDrop();
     }
 
+    public void learnAbility(final Player player) {
+        if (player.hasPermission(abilityInfo.permission())) {
+            player.sendMessage(ChatColor.RED + "You already possess this knowledge!");
+            return;
+        }
+        if (player.getLevel() < abilityInfo.levelCost()) {
+            player.sendMessage(ChatColor.RED + "You do not possess enough experience to learn this!");
+            return;
+        }
+        for (Class<? extends Ability> abilityClass : abilityInfo.requirements()) {
+            AbilityInfo requirementInfo = abilityClass.getAnnotation(AbilityInfo.class);
+            if (requirementInfo != null) {
+                if (!player.hasPermission(requirementInfo.permission())) {
+                    player.sendMessage(ChatColor.RED + "You lack knowledge of the required ability: " + requirementInfo.magicColor() + requirementInfo.name());
+                    return;
+                }
+            }
+        }
+        plugin.getPermission().playerAdd(player, abilityInfo.permission());
+        player.giveExpLevels(-abilityInfo.levelCost());
+        ItemStack item = player.getItemInHand();
+        if (item.getAmount() > 1) {
+            item.setAmount(item.getAmount() - 1);
+            player.updateInventory();
+        } else {
+            player.setItemInHand(null);
+        }
+        player.sendMessage(ChatColor.GREEN + "You now posses the knowledge of " + abilityInfo.magicColor() + abilityInfo.name() + ChatColor.GREEN + "!");
+    }
+
     public void useAbility(final PlayerInteractEvent event) {
         Player player = event.getPlayer();
         final String playerName = player.getName();
@@ -220,14 +318,14 @@ public abstract class Ability {
             player.sendMessage(ChatColor.RED + "You do not have the knowledge required to use this ability!");
             return;
         }
-        if (abilityInfo.coolDown() > 0 && coolDowns.containsKey(playerName)) {
-            if (System.currentTimeMillis() - coolDowns.get(playerName) <= abilityInfo.coolDown() * 1000) {
+        if (abilityInfo.cooldown() > 0 && coolDowns.containsKey(playerName)) {
+            if (System.currentTimeMillis() - coolDowns.get(playerName) <= abilityInfo.cooldown() * 1000) {
                 player.sendMessage(ChatColor.RED + "That ability is on cooldown!");
                 return;
             }
         }
-        for (Map.Entry<Material, Integer> component : actualUsageComponents.entrySet()) {
-            if (!player.getInventory().contains(component.getKey(), component.getValue())) {
+        for (ItemStack component : actualUsageComponents) {
+            if (!InventoryTools.contains(player.getInventory(), component)) {
                 player.sendMessage(ChatColor.RED + "You do not have the required components to use this ability!");
                 return;
             }
@@ -237,8 +335,11 @@ public abstract class Ability {
                 if (onAbilityUse(event)) {
                     if (abilityInfo.consumesAbilityItem()) {
                         InventoryTools.remove(player.getInventory(), new ItemStack(abilityItem));
+                        if (abilityInfo.usageComponents().length <= 0) {
+                            player.updateInventory();
+                        }
                     }
-                    abilityUsed(playerName);
+                    abilityUsed(player);
                 }
             } else {
                 if (abilityInfo.consumesAbilityItem()) {
@@ -248,20 +349,26 @@ public abstract class Ability {
         }
     }
 
-    private void abilityUsed(final String playerName) {
-        if (abilityInfo.coolDown() > 0) {
+    private void abilityUsed(final Player player) {
+        if (abilityInfo.cooldown() > 0) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
                 @Override
                 public void run() {
-                    Player player = Bukkit.getPlayerExact(playerName);
-                    if (player != null) {
-                        player.sendMessage(abilityInfo.magicColor().toString() + ChatColor.ITALIC + abilityInfo.name() + " is ready to use again.");
-                    }
+                    player.sendMessage(abilityInfo.magicColor().toString() + ChatColor.ITALIC + abilityInfo.name() + " is ready to use again.");
                 }
-            }, abilityInfo.coolDown() * 20L);
-            coolDowns.put(playerName, System.currentTimeMillis());
+            }, abilityInfo.cooldown() * 20L);
+            coolDowns.put(player.getName(), System.currentTimeMillis());
         }
+        for (ItemStack component : actualUsageComponents) {
+            InventoryTools.remove(player.getInventory(), component);
+        }
+        if (abilityInfo.usageComponents().length > 0) {
+            player.updateInventory();
+        }
+        player.sendMessage(ChatColor.GREEN + "Used " + abilityInfo.magicColor() + abilityInfo.name() + ChatColor.GREEN + "!");
     }
+
+    protected abstract int getLevel();
 
     protected abstract boolean canUseAbility(PlayerInteractEvent event);
 

@@ -2,6 +2,7 @@ package com.dumptruckman.minecraft.darkages;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -16,6 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Set;
 
 public class ItemUpdateAndDropListener implements Listener {
 
@@ -35,14 +37,20 @@ public class ItemUpdateAndDropListener implements Listener {
                 ItemMeta meta = currentItem.getItemMeta();
                 if (!meta.getLore().isEmpty()) {
                     final String tag = meta.getLore().get(0);
-                    for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
+                    Set<Map.Entry<ItemStack, Ability>> abilitySet;
+                    if (currentItem.getType() == Material.PAPER) {
+                        abilitySet = Ability.LEARNING_ITEMS.entrySet();
+                    } else {
+                        abilitySet = Ability.ABILITY_ITEMS.entrySet();
+                    }
+                    for (Map.Entry<ItemStack, Ability> ability : abilitySet) {
                         if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
                             int amount = currentItem.getAmount();
                             currentItem = new ItemStack(ability.getKey());
                             currentItem.setAmount(amount);
                             event.setCurrentItem(currentItem);
                             final Player player = (Player) event.getWhoClicked();
-                            player.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "This item has been updated to reflect changes in it's properties.  Please try again.");
+                            player.sendMessage(ChatColor.DARK_GRAY.toString() + ChatColor.ITALIC + "An item has been updated to reflect changes in it's properties.");
                             event.setCancelled(true);
                             event.setResult(Result.DENY);
                             Bukkit.getScheduler().runTask(plugin, new Runnable() {
@@ -81,7 +89,13 @@ public class ItemUpdateAndDropListener implements Listener {
             ItemMeta meta = currentItem.getItemMeta();
             if (!meta.getLore().isEmpty()) {
                 final String tag = meta.getLore().get(0);
-                for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
+                Set<Map.Entry<ItemStack, Ability>> abilitySet;
+                if (currentItem.getType() == Material.PAPER) {
+                    abilitySet = Ability.LEARNING_ITEMS.entrySet();
+                } else {
+                    abilitySet = Ability.ABILITY_ITEMS.entrySet();
+                }
+                for (Map.Entry<ItemStack, Ability> ability : abilitySet) {
                     if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
                         int amount = currentItem.getAmount();
                         currentItem = new ItemStack(ability.getKey());
