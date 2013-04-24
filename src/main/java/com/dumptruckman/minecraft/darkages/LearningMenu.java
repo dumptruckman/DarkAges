@@ -3,7 +3,8 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.actionmenu.MenuItem;
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
-import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
+import com.dumptruckman.minecraft.darkages.ability.AbilityType;
 
 public class LearningMenu {
 
@@ -21,7 +22,7 @@ public class LearningMenu {
         final MenuItem goBackToMainMenuMenuItem = SubMenuConfigurator.createGoBackMenuItem(mainMenu);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
-            if (ability.abilityInfo.type() == AbilityType.SPECIAL) {
+            if (ability.getDetails().getType() == AbilityType.SPECIAL) {
                 mainMenu.addItem(ability.createAbilityMenuItem());
             }
         }
@@ -43,7 +44,7 @@ public class LearningMenu {
         final SingleViewMenu skillsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Skills", 9);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
-            if (ability.abilityInfo.type() == AbilityType.SKILL) {
+            if (ability.getDetails().getType() == AbilityType.SKILL) {
                 skillsMenu.addItem(ability.createLearningMenuItem());
             }
         }
@@ -55,7 +56,7 @@ public class LearningMenu {
         final SingleViewMenu spellsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Spells", 9);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
-            if (ability.abilityInfo.type() == AbilityType.SPELL) {
+            if (ability.getDetails().getType() == AbilityType.SPELL) {
                 spellsMenu.addItem(ability.createLearningMenuItem());
             }
         }

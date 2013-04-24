@@ -1,10 +1,11 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.listeners;
 
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;

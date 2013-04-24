@@ -1,4 +1,4 @@
-package com.dumptruckman.minecraft.darkages.abilities;
+package com.dumptruckman.minecraft.darkages.ability;
 
 import com.dumptruckman.minecraft.darkages.CustomEnchantment;
 import org.bukkit.enchantments.Enchantment;

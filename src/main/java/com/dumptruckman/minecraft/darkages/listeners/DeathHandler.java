@@ -1,5 +1,7 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.listeners;
 
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
 import com.dumptruckman.minecraft.pluginbase.minecraft.location.Locations;
 import org.bukkit.Bukkit;

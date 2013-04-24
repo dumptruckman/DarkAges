@@ -2,6 +2,7 @@ name: DarkAges
 main: com.dumptruckman.minecraft.darkages.DarkAgesPlugin
 version: maven-version-number
 depend: [Vault]
+softdepend: [Towny]
 
 commands:
   darkages:

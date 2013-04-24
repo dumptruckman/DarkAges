@@ -1,9 +1,9 @@
-package com.dumptruckman.minecraft.darkages.abilities.skills;
+package com.dumptruckman.minecraft.darkages.ability.skills;
 
-import com.dumptruckman.minecraft.darkages.Ability;
-import com.dumptruckman.minecraft.darkages.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
-import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
+import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
+import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -16,22 +16,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 @AbilityInfo(
-        name = "Ambush",
-        magicColor = ChatColor.WHITE,
-        type = AbilityType.SKILL,
+        details = AbilityDetails.AMBUSH,
         description = "Teleports you to the other\nside of a nearby targeted enemy.",
-        permission = "darkages.abilities.skills.ambush",
-        material = Material.ARROW,
-        levelCost = 5,
-        usageComponents = Material.ARROW,
         cooldown = 7,
+        range = 9,
         inventoryLimit = 1,
         consumesAbilityItem = false,
-        destroyedOnDeath = true
+        destroyedOnDeath = true,
+        requiresTarget = true
 )
 public class Ambush extends Ability {
-
-    private static final int RANGE = 9;
 
     public Ambush(final DarkAgesPlugin plugin) {
         super(plugin);
@@ -44,16 +38,18 @@ public class Ambush extends Ability {
 
     @Override
     protected boolean canUseAbility(final Player player) {
+        LivingEntity target = EntityTools.getTargetedLivingEntity(player, info.range());
+        if (target == null) {
+            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "No target or not close enough!");
+            return false;
+        }
+        plugin.getSession(player).setTarget(target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = EntityTools.getTargetedLivingEntity(player, RANGE);
-        if (target == null) {
-            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "No target or not close enough!");
-            return false;
-        }
+        LivingEntity target = plugin.getSession(player).getTarget();
         Location tpLoc = null;
         Vector tVec = target.getLocation().toVector();
         Vector dir = player.getLocation().getDirection();
@@ -116,12 +112,10 @@ public class Ambush extends Ability {
     private Location getTeleportLocation(final Block block, final Vector targetVector, final Vector vector, Vector dir) {
         float pitch = 0F;
         if (block.getY() > targetVector.getY()) {
-            pitch = 45F;
+            pitch = 30F;
         } else if (block.getY() < targetVector.getY()) {
-            pitch = -45F;
+            pitch = -30F;
         }
-        //float pitch = Double.valueOf(Math.asin(dir.getY()/Math.sqrt(dir.getZ() * dir.getZ() + dir.getX() * dir.getX()))).floatValue();
-        //float yaw = Double.valueOf(Math.atan2(dir.getZ(), dir.getX())).floatValue();
         float yaw = getLookAtYaw(dir);
         return new Location(block.getWorld(), vector.getX(), block.getY(), vector.getZ(), yaw, pitch);
     }
@@ -170,7 +164,4 @@ public class Ambush extends Ability {
                 && block.getType() != Material.ENDER_PORTAL
                 && block.getRelative(BlockFace.DOWN).getType().isSolid();
     }
-
-    //formula for pitch = Math.asin(deltaY/Math.sqrt(deltaZ * deltaZ + deltaX * deltaX));
-    //formula for yaw = Math.atan2(deltaX, deltaZ);
 }

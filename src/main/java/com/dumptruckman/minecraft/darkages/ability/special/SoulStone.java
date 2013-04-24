@@ -1,9 +1,9 @@
-package com.dumptruckman.minecraft.darkages.abilities.special;
+package com.dumptruckman.minecraft.darkages.ability.special;
 
-import com.dumptruckman.minecraft.darkages.Ability;
-import com.dumptruckman.minecraft.darkages.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
-import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
+import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
+import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
 import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,13 +13,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 @AbilityInfo(
-        name = "Soul Stone",
-        magicColor = ChatColor.DARK_GRAY,
-        type = AbilityType.SPECIAL,
+        details = AbilityDetails.SOUL_STONE,
         description = "Teleports you to the\nplace of your last death.\nThis item remains on death.",
-        permission = "darkages.abilities.spells.soulstone",
-        material = Material.GHAST_TEAR,
-        levelCost = 0,
         retainOnDeath = true,
         allowDrop = true
 )

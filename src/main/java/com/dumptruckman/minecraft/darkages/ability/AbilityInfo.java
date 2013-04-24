@@ -1,8 +1,4 @@
-package com.dumptruckman.minecraft.darkages;
-
-import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+package com.dumptruckman.minecraft.darkages.ability;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,21 +9,16 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface AbilityInfo {
 
-    String name();
-    ChatColor magicColor();
-    AbilityType type();
+    AbilityDetails details();
     String description();
-    String permission();
-    Material material();
-    int levelCost();
-    Material[] prepareComponents() default {};
-    Material[] usageComponents() default {};
     int castTime() default 0;
     int cooldown() default 0;
-    Class<? extends Ability>[] requirements() default {};
+    int range() default 0;
+    AbilityDetails[] requirements() default {};
     int inventoryLimit() default 0;
     boolean consumesAbilityItem() default true;
     boolean destroyedOnDeath() default false;
     boolean retainOnDeath() default false;
     boolean allowDrop() default false;
+    boolean requiresTarget() default false;
 }

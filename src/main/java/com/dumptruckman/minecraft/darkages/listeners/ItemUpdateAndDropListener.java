@@ -1,5 +1,7 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.listeners;
 
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -44,7 +46,7 @@ public class ItemUpdateAndDropListener implements Listener {
                         abilitySet = Ability.ABILITY_ITEMS.entrySet();
                     }
                     for (Map.Entry<ItemStack, Ability> ability : abilitySet) {
-                        if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
+                        if (tag.equals(ability.getValue().getTag()) && !currentItem.isSimilar(ability.getKey())) {
                             int amount = currentItem.getAmount();
                             currentItem = new ItemStack(ability.getKey());
                             currentItem.setAmount(amount);
@@ -96,7 +98,7 @@ public class ItemUpdateAndDropListener implements Listener {
                     abilitySet = Ability.ABILITY_ITEMS.entrySet();
                 }
                 for (Map.Entry<ItemStack, Ability> ability : abilitySet) {
-                    if (tag.equals(ability.getValue().getAbilityTag()) && !currentItem.isSimilar(ability.getKey())) {
+                    if (tag.equals(ability.getValue().getTag()) && !currentItem.isSimilar(ability.getKey())) {
                         int amount = currentItem.getAmount();
                         currentItem = new ItemStack(ability.getKey());
                         currentItem.setAmount(amount);

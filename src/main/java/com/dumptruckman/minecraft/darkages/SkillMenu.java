@@ -1,9 +1,9 @@
 package com.dumptruckman.minecraft.darkages;
 
-import com.dumptruckman.minecraft.actionmenu.MenuItem;
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
-import com.dumptruckman.minecraft.darkages.abilities.AbilityType;
+import com.dumptruckman.minecraft.darkages.ability.Ability;
+import com.dumptruckman.minecraft.darkages.ability.AbilityType;
 import org.bukkit.entity.Player;
 
 public class SkillMenu {
@@ -21,7 +21,7 @@ public class SkillMenu {
         final SingleViewMenu mainMenu = Menus.createSimpleInventoryMenu(plugin, player.getName() + "'s skills", 18);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
-            if (ability.abilityInfo.type() == AbilityType.SKILL && player.hasPermission(ability.abilityInfo.permission())) {
+            if (ability.getDetails().getType() == AbilityType.SKILL && player.hasPermission(ability.getDetails().getPermission())) {
                 mainMenu.addItem(ability.createAbilityMenuItem());
             }
         }

@@ -76,7 +76,7 @@ public class EntityTools {
                 LivingEntity livingEntity = (LivingEntity) e;
                 Vector n0 = livingEntity.getLocation().toVector();
                 //n0.setY(n0.getY() + livingEntity.getEyeHeight());
-                double distance = -n1.clone().subtract(n0).dot(dir) / dir.clone().lengthSquared();
+                double distance = getDistance(dir, n1, n0);
                 if (distance > 0 && distance <= maxDistance) { // In front of the player, not behind.
                     double lineDist = Math.sqrt(n1.distanceSquared(n0) - distance * distance);
                     if (lineDist < 1) { // Tolerance value of within 1 blocks of the line.
@@ -100,5 +100,14 @@ public class EntityTools {
             }
         }
         return nearest;
+    }
+
+    private static double getDistance(final Vector dir, final Vector n1, final Vector n0) {
+        return -n1.clone().subtract(n0).dot(dir) / dir.clone().lengthSquared();
+    }
+
+    public static double getDistance(final LivingEntity entity1, final LivingEntity entity2) {
+        Location loc = entity1.getLocation();
+        return getDistance(loc.getDirection(), loc.toVector(), entity2.getLocation().toVector());
     }
 }

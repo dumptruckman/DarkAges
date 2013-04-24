@@ -1,5 +1,7 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.listeners;
 
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
+import com.dumptruckman.minecraft.darkages.ability.PlayerSession;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,6 +13,7 @@ public class PlayerMoveListener implements Listener {
 
     public PlayerMoveListener(final DarkAgesPlugin plugin) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -20,7 +23,7 @@ public class PlayerMoveListener implements Listener {
         if (from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ() && from.getBlockY() == to.getBlockY()) {
             return;
         }
-
-
+        PlayerSession session = plugin.getSession(event.getPlayer());
+        session.cancelCast();
     }
 }
