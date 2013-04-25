@@ -3,24 +3,37 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
 import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
-import com.dumptruckman.minecraft.darkages.ability.PlayerSession;
+import com.dumptruckman.minecraft.darkages.ability.CustomEnchantment;
 import com.dumptruckman.minecraft.darkages.ability.skills.Ambush;
 import com.dumptruckman.minecraft.darkages.ability.skills.ShadowFigure;
 import com.dumptruckman.minecraft.darkages.ability.special.SoulStone;
 import com.dumptruckman.minecraft.darkages.ability.spells.BeagIoc;
 import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
+import com.dumptruckman.minecraft.darkages.arena.Arena;
+import com.dumptruckman.minecraft.darkages.character.CharacterData;
 import com.dumptruckman.minecraft.darkages.listeners.AbilityUseListener;
 import com.dumptruckman.minecraft.darkages.listeners.DeathHandler;
 import com.dumptruckman.minecraft.darkages.listeners.ItemUpdateAndDropListener;
 import com.dumptruckman.minecraft.darkages.listeners.PlayerCancelCastListener;
 import com.dumptruckman.minecraft.darkages.listeners.PlayerMoveListener;
+import com.dumptruckman.minecraft.darkages.menu.LearningMenu;
+import com.dumptruckman.minecraft.darkages.menu.SkillMenu;
+import com.dumptruckman.minecraft.darkages.menu.SpellMenu;
+import com.dumptruckman.minecraft.darkages.util.CitizensLink;
+import com.dumptruckman.minecraft.darkages.util.ImmutableLocation;
+import com.dumptruckman.minecraft.darkages.util.Log;
+import com.dumptruckman.minecraft.darkages.util.StringTools;
 import com.dumptruckman.minecraft.darkages.util.TownyLink;
 import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,6 +47,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +60,16 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     private Permission permission;
     private TownyLink townyLink;
 
-    public final Map<Player, PlayerSession> playerSessions = new HashMap<Player, PlayerSession>(Bukkit.getMaxPlayers());
+    private final Map<Player, PlayerSession> playerSessions = new HashMap<Player, PlayerSession>(Bukkit.getMaxPlayers());
+    private final Map<String, Arena> arenas = new HashMap<String, Arena>(5);
+
+    @Override
+    public void onLoad() {
+        Log.init(this);
+        ConfigurationSerialization.registerClass(CharacterData.class);
+        ConfigurationSerialization.registerClass(Arena.class);
+        ConfigurationSerialization.registerClass(ImmutableLocation.class);
+    }
 
     @Override
     public void onEnable() {
@@ -81,6 +105,33 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         ShapelessRecipe soulStoneRecipe = new ShapelessRecipe(new ItemStack(AbilityDetails.SOUL_STONE.getItemStack()));
         soulStoneRecipe.addIngredient(1, Material.GHAST_TEAR);
         Bukkit.addRecipe(soulStoneRecipe);
+
+        // Load arenas
+        loadArenas();
+
+        // Setup npc traits
+        try {
+            Class.forName("net.citizensnpcs.api.CitizensAPI");
+            CitizensLink.registerTraits();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private File getArenasFile() {
+        return new File(getDataFolder(), "arenas.yml");
+    }
+
+    private void loadArenas() {
+        arenas.clear();
+        FileConfiguration config = YamlConfiguration.loadConfiguration(getArenasFile());
+        for (String arenaName : config.getKeys(false)) {
+            try {
+                arenas.put(arenaName, (Arena) config.get(arenaName));
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @EventHandler
@@ -121,10 +172,11 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     @Override
     public void reloadConfig() {
         super.reloadConfig();
+        loadArenas();
     }
 
     @Override
-    public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
+    public boolean onCommand(final CommandSender sender, final Command command, final String label, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("Must be in game.");
             return true;
@@ -136,6 +188,38 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
             openSkillMenu(player);
         } else if (command.getName().equals("spells")) {
             openSpellMenu(player);
+        } else if (command.getName().equals("arena")) {
+            args = StringTools.joinArgs(args);
+            if (args.length < 2) {
+                return false;
+            }
+            if (args[0].equalsIgnoreCase("set")) {
+                if (args.length < 3) {
+                    return false;
+                }
+                Arena arena = getArena(args[1]);
+                if (arena == null) {
+                    arena = createArena(args[1]);
+                }
+                arena.setLocation(args[2], new ImmutableLocation(player.getLocation()));
+                player.sendMessage(ChatColor.GREEN + "Set spawn area '" + args[2] +"' for arena '" + args[1] + "' to your location");
+                saveArenas();
+                return true;
+            } else if (args[0].equalsIgnoreCase("clear")) {
+                if (args.length < 2) {
+                    return false;
+                }
+                Arena arena = getArena(args[1]);
+                if (arena == null) {
+                    player.sendMessage(ChatColor.RED + "No arena named: " + args[1]);
+                } else {
+                    arena.clearLocations();
+                    player.sendMessage(ChatColor.GREEN + "Cleared spawn areas for '" + args[1] + "'!");
+                    saveArenas();
+                }
+                return true;
+            }
+            return false;
         }
         return true;
     }
@@ -166,7 +250,38 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     public PlayerSession getSession(@NotNull final Player player) {
         PlayerSession session = playerSessions.get(player);
         if (session == null) {
-            session = new PlayerSession(this, player);
+            File folder = new File(getDataFolder(), "players");
+            if (!folder.exists()) {
+                try {
+                    folder.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            File file = new File(folder, player.getName() + ".yml");
+            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+            CharacterData data;
+            if (config.contains("data")) {
+                Object obj = config.get("data");
+                if (obj instanceof CharacterData) {
+                    data = (CharacterData) obj;
+                    Log.fine("Loaded character data for %s", player.getName());
+                } else {
+                    Log.severe("Could not load character data!");
+                    data = new CharacterData();
+                    config.set("data", data);
+                }
+            } else {
+                Log.fine("Creating new character data for %s", player.getName());
+                data = new CharacterData();
+                config.set("data", data);
+            }
+            try {
+                config.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            session = new PlayerSession(this, player, data);
             playerSessions.put(player, session);
         }
         return session;
@@ -185,5 +300,29 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     @Nullable
     public TownyLink getTownyLink() {
         return townyLink;
+    }
+
+    @Nullable
+    public Arena getArena(String name) {
+        return arenas.get(name);
+    }
+
+    @NotNull
+    public Arena createArena(String name) {
+        arenas.put(name, new Arena());
+        return arenas.get(name);
+    }
+
+    public void saveArenas() {
+        File file = getArenasFile();
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        for (String name : arenas.keySet()) {
+            config.set(name, arenas.get(name));
+        }
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

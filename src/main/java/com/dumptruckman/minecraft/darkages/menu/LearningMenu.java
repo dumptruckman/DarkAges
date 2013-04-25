@@ -1,8 +1,9 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.menu;
 
 import com.dumptruckman.minecraft.actionmenu.MenuItem;
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityType;
 
@@ -21,27 +22,41 @@ public class LearningMenu {
         // Create main menu "go back" button
         final MenuItem goBackToMainMenuMenuItem = SubMenuConfigurator.createGoBackMenuItem(mainMenu);
 
+        // Create the Skill menu and add to main menu
+        final SingleViewMenu abilitiesMenu = initializeAbilitiesMenu();
+        abilitiesMenu.addItem(goBackToMainMenuMenuItem); // Add back button
+        mainMenu.addItem(abilitiesMenu);
+
+        return mainMenu;
+    }
+
+    private SingleViewMenu initializeAbilitiesMenu() {
+        final SingleViewMenu abilitiesMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Abilities", 9);
+
+        // Create main menu "go back" button
+        final MenuItem goBackToMainMenuMenuItem = SubMenuConfigurator.createGoBackMenuItem(abilitiesMenu);
+
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
             if (ability.getDetails().getType() == AbilityType.SPECIAL) {
-                mainMenu.addItem(ability.createAbilityMenuItem());
+                abilitiesMenu.addItem(ability.createAbilityMenuItem());
             }
         }
 
         // Create the Skill menu and add to main menu
         final SingleViewMenu skillsMenu = initializeSkillsMenu();
         skillsMenu.addItem(goBackToMainMenuMenuItem); // Add back button
-        mainMenu.addItem(skillsMenu);
+        abilitiesMenu.addItem(skillsMenu);
 
         // Create the Spell menu and add to main menu
         final SingleViewMenu spellsMenu = initializeSpellsMenu();
         spellsMenu.addItem(goBackToMainMenuMenuItem); // Add back button
-        mainMenu.addItem(spellsMenu);
+        abilitiesMenu.addItem(spellsMenu);
 
-        return mainMenu;
+        return abilitiesMenu;
     }
 
     private SingleViewMenu initializeSkillsMenu() {
-        final SingleViewMenu skillsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Skills", 9);
+        final SingleViewMenu skillsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Skills", 18);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
             if (ability.getDetails().getType() == AbilityType.SKILL) {
@@ -53,7 +68,7 @@ public class LearningMenu {
     }
 
     private SingleViewMenu initializeSpellsMenu() {
-        final SingleViewMenu spellsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Spells", 9);
+        final SingleViewMenu spellsMenu = SubMenuConfigurator.createNewSubMenu(plugin, "All Spells", 18);
 
         for (Ability ability : Ability.ABILITY_ITEMS.values()) {
             if (ability.getDetails().getType() == AbilityType.SPELL) {

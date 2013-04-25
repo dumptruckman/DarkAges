@@ -1,8 +1,8 @@
 name: DarkAges
 main: com.dumptruckman.minecraft.darkages.DarkAgesPlugin
 version: maven-version-number
-depend: [Vault]
-softdepend: [Towny]
+depend: [Vault,WorldGuard]
+softdepend: [Towny,Citizens]
 
 commands:
   darkages:
@@ -12,6 +12,10 @@ commands:
     description: Shows all of your known skills.
   spells:
     description: Shows all of your known spells.
+  arena:
+    description: Manages arenas
+    permission: darkages.arena
+    usage: /arena set <arena> <location>
 
 permissions:
   darkages.abilities.*:

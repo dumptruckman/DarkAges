@@ -1,7 +1,8 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.menu;
 
 import com.dumptruckman.minecraft.actionmenu.prefab.Menus;
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
+import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityType;
 import org.bukkit.entity.Player;

@@ -1,6 +1,5 @@
 package com.dumptruckman.minecraft.darkages.ability;
 
-import com.dumptruckman.minecraft.darkages.CustomEnchantment;
 import org.bukkit.enchantments.Enchantment;
 
 public enum AbilityType {

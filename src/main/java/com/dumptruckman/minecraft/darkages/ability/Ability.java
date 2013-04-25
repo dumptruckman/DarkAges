@@ -2,7 +2,6 @@ package com.dumptruckman.minecraft.darkages.ability;
 
 import com.dumptruckman.minecraft.actionmenu.Action;
 import com.dumptruckman.minecraft.actionmenu.MenuItem;
-import com.dumptruckman.minecraft.darkages.CustomEnchantment;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.util.InventoryTools;
 import org.bukkit.Bukkit;

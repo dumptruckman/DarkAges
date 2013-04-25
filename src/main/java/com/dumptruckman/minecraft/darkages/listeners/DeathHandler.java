@@ -84,4 +84,5 @@ public class DeathHandler implements Listener {
             retainedItemsAtDeath.remove(event.getPlayer().getName());
         }
     }
+
 }

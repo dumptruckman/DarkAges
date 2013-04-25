@@ -1,7 +1,7 @@
 package com.dumptruckman.minecraft.darkages.listeners;
 
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
-import com.dumptruckman.minecraft.darkages.ability.PlayerSession;
+import com.dumptruckman.minecraft.darkages.PlayerSession;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

@@ -1,4 +1,4 @@
-package com.dumptruckman.minecraft.darkages;
+package com.dumptruckman.minecraft.darkages.menu;
 
 import com.dumptruckman.minecraft.actionmenu.Action;
 import com.dumptruckman.minecraft.actionmenu.MenuItem;

@@ -1,5 +1,6 @@
 package com.dumptruckman.minecraft.darkages.ability;
 
+import com.dumptruckman.minecraft.darkages.PlayerSession;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
