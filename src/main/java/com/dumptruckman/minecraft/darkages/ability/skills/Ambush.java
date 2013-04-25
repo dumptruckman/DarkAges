@@ -4,6 +4,7 @@ import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
+import com.dumptruckman.minecraft.darkages.util.BlockSafety;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -19,7 +20,7 @@ import org.bukkit.util.Vector;
         details = AbilityDetails.AMBUSH,
         description = "Teleports you to the other\nside of a nearby targeted enemy.",
         cooldown = 7,
-        range = 9,
+        range = 7,
         inventoryLimit = 1,
         consumesAbilityItem = false,
         destroyedOnDeath = true,
@@ -56,7 +57,7 @@ public class Ambush extends Ability {
         dir = dir.setY(0).normalize();
         final World world = target.getWorld();
         Vector newVector = tVec.clone().add(dir);
-        Block block = getSafestBlock(world, newVector);
+        Block block = BlockSafety.getSafestBlock(world, newVector);
         if (block != null) {
             Vector newDir = dir.clone();
             double z = newDir.getZ();
@@ -69,7 +70,7 @@ public class Ambush extends Ability {
             newDir.setZ(newDir.getX());
             newDir.setX(-z);
             newVector = tVec.clone().add(newDir);
-            block = getSafestBlock(world, newVector);
+            block = BlockSafety.getSafestBlock(world, newVector);
             if (block != null) {
                 z = newDir.getZ();
                 newDir.setZ(-newDir.getX());
@@ -81,7 +82,7 @@ public class Ambush extends Ability {
                 newDir.setZ(-newDir.getX());
                 newDir.setX(z);
                 newVector = tVec.clone().add(newDir);
-                block = getSafestBlock(world, newVector);
+                block = BlockSafety.getSafestBlock(world, newVector);
                 if (block != null) {
                     z = newDir.getZ();
                     newDir.setZ(-newDir.getX());
@@ -89,7 +90,7 @@ public class Ambush extends Ability {
                     tpLoc = getTeleportLocation(block, tVec, newVector, newDir);
                 } else {
                     newVector = tVec.clone().subtract(dir);
-                    block = getSafestBlock(world, newVector);
+                    block = BlockSafety.getSafestBlock(world, newVector);
                     if (block != null) {
                         newDir.setZ(-newDir.getZ());
                         newDir.setX(-newDir.getX());
@@ -98,7 +99,6 @@ public class Ambush extends Ability {
                 }
             }
         }
-        System.out.println(tpLoc);
         if (tpLoc != null) {
             player.teleport(tpLoc);
         } else {
@@ -139,29 +139,5 @@ public class Ambush extends Ability {
         return (float) (-yaw * 180 / Math.PI - 90);
     }
 
-    private Block getSafestBlock(final World world, final Vector vector) {
-        Block block = world.getBlockAt(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
-        if (isBlockSafe(block)) {
-            return block;
-        }
-        block = world.getBlockAt(vector.getBlockX(), vector.getBlockY() - 1, vector.getBlockZ());
-        if (isBlockSafe(block)) {
-            return block;
-        }
-        block = world.getBlockAt(vector.getBlockX(), vector.getBlockY() + 1, vector.getBlockZ());
-        if (isBlockSafe(block)) {
-            return block;
-        }
-        return null;
-    }
 
-    private boolean isBlockSafe(final Block block) {
-        return !block.getType().isSolid()
-                && !block.getType().isOccluding()
-                && block.getType() != Material.LAVA
-                && block.getType() != Material.STATIONARY_LAVA
-                && block.getType() != Material.PORTAL
-                && block.getType() != Material.ENDER_PORTAL
-                && block.getRelative(BlockFace.DOWN).getType().isSolid();
-    }
 }

@@ -5,6 +5,7 @@ import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.PlayerSession;
 import com.dumptruckman.minecraft.darkages.ability.skills.Ambush;
+import com.dumptruckman.minecraft.darkages.ability.skills.ShadowFigure;
 import com.dumptruckman.minecraft.darkages.ability.special.SoulStone;
 import com.dumptruckman.minecraft.darkages.ability.spells.BeagIoc;
 import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
@@ -106,6 +107,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     private void initializeAbilities() {
         new SoulStone(this);
         new Ambush(this);
+        new ShadowFigure(this);
         new BeagIoc(this);
         new Dachaidh(this);
     }
