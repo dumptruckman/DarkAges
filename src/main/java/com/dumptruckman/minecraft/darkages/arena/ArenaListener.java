@@ -3,6 +3,7 @@ package com.dumptruckman.minecraft.darkages.arena;
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -114,5 +115,13 @@ public class ArenaListener implements Listener {
             }
         }
         return false;
+    }
+
+    @EventHandler
+    public void interact(final NPCRightClickEvent event) {
+        ArenaMasterTrait trait = event.getNPC().getTrait(ArenaMasterTrait.class);
+        if (trait != null) {
+            trait.onRightClick(event);
+        }
     }
 }

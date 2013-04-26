@@ -11,7 +11,6 @@ import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.util.DataKey;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.event.EventHandler;
 
 public class ArenaMasterTrait extends Trait implements CommandConfigurable {
 
@@ -34,7 +33,6 @@ public class ArenaMasterTrait extends Trait implements CommandConfigurable {
         key.setString("representsArena", representsArena);
     }
 
-    @EventHandler
     public void onRightClick(NPCRightClickEvent event) {
         if (!representsArena.isEmpty()) {
             try {
