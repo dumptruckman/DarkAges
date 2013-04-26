@@ -17,10 +17,12 @@ public class Arena implements ConfigurationSerializable {
 
     private Map<String, ImmutableLocation> locations = null;
     private ImmutableLocation respawnLocation = null;
-    private String name = null;
+    private String name = "";
+    private String regionId = "";
 
-    public Arena(String name) {
+    public Arena(String regionId, String name) {
         locations = new LinkedHashMap<String, ImmutableLocation>(10);
+        this.regionId = regionId;
         this.name = name;
     }
 
@@ -91,5 +93,9 @@ public class Arena implements ConfigurationSerializable {
 
     public String getName() {
         return name;
+    }
+
+    public String getRegionId() {
+        return regionId;
     }
 }

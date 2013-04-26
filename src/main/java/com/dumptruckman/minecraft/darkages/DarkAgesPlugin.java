@@ -27,6 +27,7 @@ import com.dumptruckman.minecraft.darkages.util.StringTools;
 import com.dumptruckman.minecraft.darkages.util.TownyLink;
 import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -49,7 +50,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -205,21 +205,22 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                 if (args.length < 3) {
                     return false;
                 }
-                Arena arena = getArena(args[1].replaceAll(" ", ""));
+                Arena arena = getArena(args[1]);
                 if (arena == null) {
-                    arena = createArena(args[1]);
+                    player.sendMessage(ChatColor.RED + "No region named: " + args[1]);
+                } else {
+                    arena.setLocation(args[2], new ImmutableLocation(player.getLocation()));
+                    player.sendMessage(ChatColor.GREEN + "Set spawn area '" + args[2] +"' for arena '" + args[1] + "' to your location");
+                    saveArenas();
                 }
-                arena.setLocation(args[2], new ImmutableLocation(player.getLocation()));
-                player.sendMessage(ChatColor.GREEN + "Set spawn area '" + args[2] +"' for arena '" + args[1] + "' to your location");
-                saveArenas();
                 return true;
             } else if (args[0].equalsIgnoreCase("clear")) {
                 if (args.length < 2) {
                     return false;
                 }
-                Arena arena = getArena(args[1].replaceAll(" ", ""));
+                Arena arena = getArena(args[1]);
                 if (arena == null) {
-                    player.sendMessage(ChatColor.RED + "No arena named: " + args[1]);
+                    player.sendMessage(ChatColor.RED + "No region named: " + args[1]);
                 } else {
                     arena.clearLocations();
                     player.sendMessage(ChatColor.GREEN + "Cleared spawn areas for '" + args[1] + "'!");
@@ -230,13 +231,27 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                 if (args.length < 2) {
                     return false;
                 }
-                Arena arena = getArena(args[1].replaceAll(" ", ""));
+                Arena arena = getArena(args[1]);
                 if (arena == null) {
-                    arena = createArena(args[1]);
+                    player.sendMessage(ChatColor.RED + "No region named: " + args[1]);
+                } else {
+                    arena.setRespawnLocation(new ImmutableLocation(player.getLocation()));
+                    player.sendMessage(ChatColor.GREEN + "Set respawn area for arena '" + args[1] + "' to your location");
+                    saveArenas();
                 }
-                arena.setRespawnLocation(new ImmutableLocation(player.getLocation()));
-                player.sendMessage(ChatColor.GREEN + "Set respawn area for arena '" + args[1] + "' to your location");
-                saveArenas();
+                return true;
+            } else if (args[0].equalsIgnoreCase("create")) {
+                if (args.length < 3) {
+                    return false;
+                }
+                ProtectedRegion region = getWorldGuard().getRegionManager(player.getWorld()).getRegion(args[1]);
+                if (region == null) {
+                    player.sendMessage(ChatColor.RED + "No region named: " + args[1]);
+                } else {
+                    createArena(args[1], args[2]);
+                    player.sendMessage(ChatColor.GREEN + "Assigned arena '" + args[2] + "' to region '" + args[1] + "'");
+                    saveArenas();
+                }
                 return true;
             }
             return false;
@@ -322,9 +337,10 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @NotNull
-    public Arena createArena(String name) {
-        arenas.put(name.replaceAll(" ", ""), new Arena(name));
-        return arenas.get(name.replaceAll(" ", ""));
+    public Arena createArena(String regionId, String name) {
+        Arena arena = new Arena(regionId, name);
+        arenas.put(regionId, arena);
+        return arena;
     }
 
     public void saveArenas() {
