@@ -30,7 +30,7 @@ public class ArenaMenu {
 
     public SingleViewMenu buildMenu() {
         // Create the main menu
-        final SingleViewMenu menu = Menus.createSimpleInventoryMenu(plugin, "Arena: " + arenaName, 9);
+        final SingleViewMenu menu = Menus.createSimpleInventoryMenu(plugin, "Arena: " + arena.getName(), 9);
 
         for (String locName : arena.getLocations()) {
             final Location location = arena.getLocation(locName);
@@ -42,7 +42,7 @@ public class ArenaMenu {
             meta.setDisplayName("Go to " + locName);
             item.setItemMeta(meta);
 
-            new MenuItem(locName).setItemStack(item).setAction(new Action() {
+            menu.addItem(new MenuItem(locName).setItemStack(item).setAction(new Action() {
                 @Override
                 public void performAction(@Nullable final Player player) {
                     if (player != null) {
@@ -50,7 +50,7 @@ public class ArenaMenu {
                         player.teleport(location);
                     }
                 }
-            });
+            }));
         }
         return menu;
     }

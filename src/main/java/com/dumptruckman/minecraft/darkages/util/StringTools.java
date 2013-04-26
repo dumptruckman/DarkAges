@@ -12,7 +12,7 @@ public class StringTools {
     public static String[] joinArgs(final String[] args) {
         // Eliminate empty args and combine multiword args first
         List<String> argList = new ArrayList<String>(args.length);
-        for (int i = 1; i < args.length; ++i) {
+        for (int i = 0; i < args.length; ++i) {
             String arg = args[i];
             if (arg.length() == 0) {
                 continue;

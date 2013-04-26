@@ -10,6 +10,7 @@ import net.citizensnpcs.api.exception.NPCLoadException;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.util.DataKey;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 
 public class ArenaMasterTrait extends Trait implements CommandConfigurable {
@@ -40,15 +41,17 @@ public class ArenaMasterTrait extends Trait implements CommandConfigurable {
                 SingleViewMenu menu = new ArenaMenu(plugin, representsArena).buildMenu();
                 menu.updateView(menu, event.getClicker());
             } catch (IllegalArgumentException e) {
-                e.printStackTrace();
+                event.getClicker().sendMessage(ChatColor.RED + "Arena is broken!");
             }
+        } else {
+            event.getClicker().sendMessage(ChatColor.RED + "Arena not configured!");
         }
     }
 
     @Override
     public void configure(final CommandContext commandContext) {
-        if (commandContext.length() == 1) {
-            representsArena = commandContext.getString(0);
+        if (commandContext.length() >= 2) {
+            representsArena = commandContext.getString(1);
         }
     }
 }

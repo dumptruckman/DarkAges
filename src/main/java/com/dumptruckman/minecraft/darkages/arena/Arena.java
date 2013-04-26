@@ -2,6 +2,7 @@ package com.dumptruckman.minecraft.darkages.arena;
 
 import com.dumptruckman.minecraft.darkages.util.ImmutableLocation;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,19 +10,26 @@ import javax.persistence.Transient;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Arena implements ConfigurationSerializable {
 
     private Map<String, ImmutableLocation> locations = null;
+    private ImmutableLocation respawnLocation = null;
+    private String name = null;
 
-    public Arena() {
-        locations = new HashMap<String, ImmutableLocation>(10);
+    public Arena(String name) {
+        locations = new LinkedHashMap<String, ImmutableLocation>(10);
+        this.name = name;
     }
 
     public Arena(Map<String, Object> data) {
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             try {
+                if (entry.getKey().equals(ConfigurationSerialization.SERIALIZED_TYPE_KEY)) {
+                    continue;
+                }
                 Field field = getClass().getDeclaredField(entry.getKey());
                 boolean access = field.isAccessible();
                 field.setAccessible(true);
@@ -32,7 +40,7 @@ public class Arena implements ConfigurationSerializable {
             }
         }
         if (locations == null) {
-            locations = new HashMap<String, ImmutableLocation>(10);
+            locations = new LinkedHashMap<String, ImmutableLocation>(10);
         }
     }
 
@@ -71,5 +79,17 @@ public class Arena implements ConfigurationSerializable {
 
     public void clearLocations() {
         locations.clear();
+    }
+
+    public void setRespawnLocation(ImmutableLocation location) {
+        this.respawnLocation = location;
+    }
+
+    public ImmutableLocation getRespawnLocation() {
+        return this.respawnLocation;
+    }
+
+    public String getName() {
+        return name;
     }
 }

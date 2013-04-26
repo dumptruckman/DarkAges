@@ -10,6 +10,7 @@ import com.dumptruckman.minecraft.darkages.ability.special.SoulStone;
 import com.dumptruckman.minecraft.darkages.ability.spells.BeagIoc;
 import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
 import com.dumptruckman.minecraft.darkages.arena.Arena;
+import com.dumptruckman.minecraft.darkages.arena.ArenaListener;
 import com.dumptruckman.minecraft.darkages.character.CharacterData;
 import com.dumptruckman.minecraft.darkages.listeners.AbilityUseListener;
 import com.dumptruckman.minecraft.darkages.listeners.DeathHandler;
@@ -25,6 +26,7 @@ import com.dumptruckman.minecraft.darkages.util.Log;
 import com.dumptruckman.minecraft.darkages.util.StringTools;
 import com.dumptruckman.minecraft.darkages.util.TownyLink;
 import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -47,6 +49,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -59,6 +62,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     private DeathHandler deathHandler;
     private Permission permission;
     private TownyLink townyLink;
+    private WorldGuardPlugin worldGuard;
 
     private final Map<Player, PlayerSession> playerSessions = new HashMap<Player, PlayerSession>(Bukkit.getMaxPlayers());
     private final Map<String, Arena> arenas = new HashMap<String, Arena>(5);
@@ -80,6 +84,9 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
         }
+
+        // Setup WorldGuard
+        worldGuard = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
 
         // Setup towny
         Plugin plugin = getServer().getPluginManager().getPlugin("Towny");
@@ -108,6 +115,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
 
         // Load arenas
         loadArenas();
+        new ArenaListener(this);
 
         // Setup npc traits
         try {
@@ -197,7 +205,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                 if (args.length < 3) {
                     return false;
                 }
-                Arena arena = getArena(args[1]);
+                Arena arena = getArena(args[1].replaceAll(" ", ""));
                 if (arena == null) {
                     arena = createArena(args[1]);
                 }
@@ -209,7 +217,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                 if (args.length < 2) {
                     return false;
                 }
-                Arena arena = getArena(args[1]);
+                Arena arena = getArena(args[1].replaceAll(" ", ""));
                 if (arena == null) {
                     player.sendMessage(ChatColor.RED + "No arena named: " + args[1]);
                 } else {
@@ -217,6 +225,18 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                     player.sendMessage(ChatColor.GREEN + "Cleared spawn areas for '" + args[1] + "'!");
                     saveArenas();
                 }
+                return true;
+            } else if (args[0].equalsIgnoreCase("respawn")) {
+                if (args.length < 2) {
+                    return false;
+                }
+                Arena arena = getArena(args[1].replaceAll(" ", ""));
+                if (arena == null) {
+                    arena = createArena(args[1]);
+                }
+                arena.setRespawnLocation(new ImmutableLocation(player.getLocation()));
+                player.sendMessage(ChatColor.GREEN + "Set respawn area for arena '" + args[1] + "' to your location");
+                saveArenas();
                 return true;
             }
             return false;
@@ -251,13 +271,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         PlayerSession session = playerSessions.get(player);
         if (session == null) {
             File folder = new File(getDataFolder(), "players");
-            if (!folder.exists()) {
-                try {
-                    folder.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            folder.mkdirs();
             File file = new File(folder, player.getName() + ".yml");
             FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             CharacterData data;
@@ -309,8 +323,8 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
 
     @NotNull
     public Arena createArena(String name) {
-        arenas.put(name, new Arena());
-        return arenas.get(name);
+        arenas.put(name.replaceAll(" ", ""), new Arena(name));
+        return arenas.get(name.replaceAll(" ", ""));
     }
 
     public void saveArenas() {
@@ -324,5 +338,9 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public WorldGuardPlugin getWorldGuard() {
+        return worldGuard;
     }
 }

@@ -1,6 +1,7 @@
 package com.dumptruckman.minecraft.darkages.character;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import javax.persistence.Transient;
 import java.lang.reflect.Field;
@@ -19,6 +20,9 @@ public class CharacterData implements ConfigurationSerializable {
     public CharacterData(Map<String, Object> data) {
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             try {
+                if (entry.getKey().equals(ConfigurationSerialization.SERIALIZED_TYPE_KEY)) {
+                    continue;
+                }
                 Field field = getClass().getDeclaredField(entry.getKey());
                 boolean access = field.isAccessible();
                 field.setAccessible(true);

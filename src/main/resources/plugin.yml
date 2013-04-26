@@ -15,7 +15,7 @@ commands:
   arena:
     description: Manages arenas
     permission: darkages.arena
-    usage: /arena set <arena> <location>
+    usage: /arena <set <arena> <location> | clear <arena> | respawn <arena>>
 
 permissions:
   darkages.abilities.*:

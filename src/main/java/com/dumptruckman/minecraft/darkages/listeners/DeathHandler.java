@@ -6,6 +6,7 @@ import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinate
 import com.dumptruckman.minecraft.pluginbase.minecraft.location.Locations;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -13,11 +14,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class DeathHandler implements Listener {
 
@@ -34,16 +31,18 @@ public class DeathHandler implements Listener {
 
     @EventHandler
     public void playerDeath(PlayerDeathEvent event) {
-        int savedExp = (event.getEntity().getTotalExperience() / 2) - event.getDroppedExp();
+        final Player player = event.getEntity();
+
+        int savedExp = (player.getTotalExperience() / 2) - event.getDroppedExp();
         if (savedExp < 0) {
             savedExp = 0;
         }
-        expAtDeath.put(event.getEntity().getName(), savedExp);
+        expAtDeath.put(player.getName(), savedExp);
         Set<ItemStack> retainedItems = new HashSet<ItemStack>(Ability.ABILITY_ITEMS.size());
         for (Map.Entry<ItemStack, Ability> ability : Ability.ABILITY_ITEMS.entrySet()) {
             if (ability.getValue().isRetainedOnDeath()) {
                 ItemStack retainedItem = null;
-                for (ItemStack item : event.getEntity().getInventory().getContents()) {
+                for (ItemStack item : player.getInventory().getContents()) {
                     if (item != null && item.isSimilar(ability.getKey())) {
                         if (retainedItem == null) {
                             retainedItem = new ItemStack(ability.getKey());
@@ -59,7 +58,7 @@ public class DeathHandler implements Listener {
             }
         }
         if (!retainedItems.isEmpty()) {
-            retainedItemsAtDeath.put(event.getEntityType().getName(), retainedItems);
+            retainedItemsAtDeath.put(player.getName(), retainedItems);
         }
         Iterator<ItemStack> drops = event.getDrops().iterator();
         if (drops.hasNext()) {
@@ -71,8 +70,8 @@ public class DeathHandler implements Listener {
                 }
             }
         }
-        Location l = event.getEntity().getLocation();
-        deathLocation.put(event.getEntity().getName(), Locations.getEntityCoordinates(l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getPitch(), l.getYaw()));
+        final Location l = player.getLocation();
+        deathLocation.put(player.getName(), Locations.getEntityCoordinates(l.getWorld().getName(), l.getX(), l.getY(), l.getZ(), l.getPitch(), l.getYaw()));
     }
 
     @EventHandler
