@@ -118,6 +118,7 @@ public class ArenaListener implements Listener {
             Arena arena = plugin.getArena(regionName);
             if (arena != null) {
                 event.setCancelled(true);
+                player.setSaturation(20F);
                 return;
             }
         }

@@ -52,6 +52,24 @@ public class ArenaMenu {
                 }
             }));
         }
+
+        final Location loc = arena.getRespawnLocation();
+        if (loc != null) {
+            ItemStack item = new ItemStack(Material.PORTAL);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName("Leave arena");
+            item.setItemMeta(meta);
+
+            menu.addItem(new MenuItem("Leave arena").setItemStack(item).setAction(new Action() {
+                @Override
+                public void performAction(@Nullable final Player player) {
+                    if (player != null) {
+                        player.closeInventory();
+                        player.teleport(loc);
+                    }
+                }
+            }));
+        }
         return menu;
     }
 }
