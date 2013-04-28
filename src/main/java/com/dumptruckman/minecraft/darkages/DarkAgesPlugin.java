@@ -12,11 +12,7 @@ import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
 import com.dumptruckman.minecraft.darkages.arena.Arena;
 import com.dumptruckman.minecraft.darkages.arena.ArenaListener;
 import com.dumptruckman.minecraft.darkages.character.CharacterData;
-import com.dumptruckman.minecraft.darkages.listeners.AbilityUseListener;
-import com.dumptruckman.minecraft.darkages.listeners.DeathHandler;
-import com.dumptruckman.minecraft.darkages.listeners.ItemUpdateAndDropListener;
-import com.dumptruckman.minecraft.darkages.listeners.PlayerCancelCastListener;
-import com.dumptruckman.minecraft.darkages.listeners.PlayerMoveListener;
+import com.dumptruckman.minecraft.darkages.listeners.*;
 import com.dumptruckman.minecraft.darkages.menu.LearningMenu;
 import com.dumptruckman.minecraft.darkages.menu.SkillMenu;
 import com.dumptruckman.minecraft.darkages.menu.SpellMenu;
@@ -106,6 +102,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         new ItemUpdateAndDropListener(this);
         new PlayerMoveListener(this);
         new PlayerCancelCastListener(this);
+        new PortalListener(this);
         getServer().getPluginManager().registerEvents(this, this);
 
         // Setup recipes

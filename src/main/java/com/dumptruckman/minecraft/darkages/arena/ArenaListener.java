@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -88,6 +89,10 @@ public class ArenaListener implements Listener {
                 l = Bukkit.getWorlds().get(0).getSpawnLocation();
             }
             player.teleport(l);
+            player.setFireTicks(0);
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
             event.setCancelled(true);
         }
     }

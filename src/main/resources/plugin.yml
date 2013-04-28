@@ -2,7 +2,7 @@ name: DarkAges
 main: com.dumptruckman.minecraft.darkages.DarkAgesPlugin
 version: maven-version-number
 depend: [Vault,WorldGuard]
-softdepend: [Towny,Citizens]
+softdepend: [Citizens,Towny]
 
 commands:
   darkages:

@@ -3,11 +3,24 @@ package com.dumptruckman.minecraft.darkages;
 import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.CastingTask;
 import com.dumptruckman.minecraft.darkages.character.CharacterData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerSession {
+
+    private class CancelPortalLimitation implements Runnable {
+        @Override
+        public void run() {
+            portalLimitation = false;
+        }
+    }
 
     private final DarkAgesPlugin plugin;
     private final Player player;
@@ -16,6 +29,9 @@ public class PlayerSession {
 
     private LivingEntity target = null;
     private CastingTask castingTask = null;
+    private BlockState preCastingBlockState = null;
+    private boolean portalLimitation = false;
+    private final CancelPortalLimitation portalLimitationCanceller = new CancelPortalLimitation();
 
     public PlayerSession(final DarkAgesPlugin plugin, final Player player, final CharacterData data) {
         this.plugin = plugin;
@@ -47,6 +63,10 @@ public class PlayerSession {
         castingTask = new CastingTask(this, ability);
         if (ability.getInfo().castTime() > 0) {
             try {
+                Block castingBlock = player.getLocation().getBlock();
+                preCastingBlockState = castingBlock.getState();
+                castingBlock.setTypeId(Material.PORTAL.getId(), false);
+                castingBlock.getState().update(true);
                 castingTask.runTaskLater(plugin, ability.getInfo().castTime() * 20L);
             } catch (IllegalStateException e) {
                 player.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD + "Something went wrong!!!");
@@ -64,12 +84,22 @@ public class PlayerSession {
     public void cancelCast() {
         if (castingTask != null) {
             castingTask.cancel();
-            castingTask = null;
+            clearCastTask();
         }
     }
 
     public void clearCastTask() {
+        portalLimitation = true;
         castingTask = null;
+        if (preCastingBlockState != null) {
+            preCastingBlockState.update(true);
+        }
+        preCastingBlockState = null;
+        Bukkit.getScheduler().runTaskLater(plugin, portalLimitationCanceller, 1L);
+    }
+
+    public boolean isAllowedToPortal() {
+        return !isCasting() && !portalLimitation;
     }
 
     public void regenerateHealthAndMana() {
