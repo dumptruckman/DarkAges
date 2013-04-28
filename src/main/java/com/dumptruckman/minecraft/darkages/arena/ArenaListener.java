@@ -116,6 +116,9 @@ public class ArenaListener implements Listener {
             return;
         }
         final Player player = (Player) event.getEntity();
+        if (event.getFoodLevel() >= player.getFoodLevel()) {
+            return;
+        }
         Location l = player.getLocation();
         RegionManager regionManager = plugin.getWorldGuard().getRegionManager(player.getWorld());
         List<String> regionNames = regionManager.getApplicableRegionsIDs(new Vector(l.getX(), l.getY(), l.getZ()));
