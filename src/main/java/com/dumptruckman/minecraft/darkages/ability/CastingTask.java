@@ -25,7 +25,6 @@ public class CastingTask extends BukkitRunnable {
         if (hasCastTime) {
             getPlayer().playSound(getPlayer().getLocation(), Sound.PORTAL, 0.7F, 0.5F);
             getPlayer().addPotionEffect(new PotionEffect(CAST_EFFECT, ability.info.castTime() * 20, 1, true));
-            getPlayer().sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Casting " + ability.getDetails().getColor() + ChatColor.ITALIC + ability.getDetails().getName() + ChatColor.GRAY.toString() + ChatColor.ITALIC + "...");
         }
     }
 
@@ -41,7 +40,6 @@ public class CastingTask extends BukkitRunnable {
     public synchronized void cancel() {
         try {
             super.cancel();
-            getPlayer().sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Cancelled cast!");
             endCasting();
         } catch (IllegalStateException e) {
             e.printStackTrace();

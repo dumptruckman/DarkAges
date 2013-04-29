@@ -61,11 +61,25 @@ public class PlayerSession {
         castingTask = new CastingTask(this, ability);
         if (ability.getInfo().castTime() > 0) {
             try {
+                castingTask.runTaskLater(plugin, ability.getInfo().castTime() * 20L);
                 castingBlock = player.getLocation().getBlock();
                 preCastingBlockState = castingBlock.getState();
                 castingBlock.setTypeId(Material.PORTAL.getId(), false);
                 castingBlock.getState().update(true);
-                castingTask.runTaskLater(plugin, ability.getInfo().castTime() * 20L);
+                if (target != null) {
+                    if (target instanceof Player) {
+                        Player targetPlayer = (Player) target;
+                        if (targetPlayer.equals(player)) {
+                            player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.DARK_GRAY + "self" + ChatColor.RESET + "...");
+                        } else {
+                            player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + targetPlayer.getName() + ChatColor.RESET + "...");
+                        }
+                    } else {
+                        player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + target.getType().getName() + ChatColor.RESET + "...");
+                    }
+                } else {
+                    player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + "...");
+                }
             } catch (IllegalStateException e) {
                 player.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD + "Something went wrong!!!");
             }

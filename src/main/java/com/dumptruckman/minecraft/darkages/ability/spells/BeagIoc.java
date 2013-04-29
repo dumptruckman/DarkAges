@@ -6,7 +6,6 @@ import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import net.minecraft.server.v1_5_R2.EntityFireworks;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
@@ -52,11 +51,6 @@ public class BeagIoc extends Ability {
                 //player.sendMessage(ChatColor.RED + "Can only target players!");
                 //return false;
             }
-        }
-        if (target == player) {
-            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Targeting self...");
-        } else {
-            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Targeting " + ((Player) target).getName() + "...");
         }
         plugin.getPlayerSession(player).setTarget(target);
         return true;
