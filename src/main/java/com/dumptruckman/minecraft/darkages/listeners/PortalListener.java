@@ -2,15 +2,10 @@ package com.dumptruckman.minecraft.darkages.listeners;
 
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
 import com.dumptruckman.minecraft.darkages.util.TownyLink;
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.jetbrains.annotations.NotNull;

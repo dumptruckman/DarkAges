@@ -5,10 +5,18 @@ import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
-import org.bukkit.ChatColor;
-import org.bukkit.Sound;
+import net.minecraft.server.v1_5_R2.EntityFireworks;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.craftbukkit.v1_5_R2.entity.CraftFirework;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.FireworkMeta;
+
+import java.lang.reflect.Field;
 
 @AbilityInfo(
         details = AbilityDetails.BEAG_IOC,
@@ -62,7 +70,25 @@ public class BeagIoc extends Ability {
             newHealth = 20;
         }
         target.setHealth(newHealth);
-        ((Player) target).playSound(target.getLocation(), Sound.ORB_PICKUP, 0.7F, 0.5F);
+        Location fxLoc = target.getEyeLocation();
+        Firework firework = (Firework) fxLoc.getWorld().spawnEntity(fxLoc, EntityType.FIREWORK);
+        FireworkMeta meta = firework.getFireworkMeta();
+        meta.addEffect(FireworkEffect.builder()
+                .withColor(Color.BLUE, Color.BLUE, Color.WHITE)
+                .withFade(Color.WHITE)
+                .with(FireworkEffect.Type.BALL).build());
+        firework.setFireworkMeta(meta);
+        EntityFireworks eFirework = ((CraftFirework) firework).getHandle();
+        eFirework.expectedLifespan = 1;
+        try {
+            Field field = eFirework.getClass().getDeclaredField("ticksFlown");
+            field.setAccessible(true);
+            field.set(eFirework, 1);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
