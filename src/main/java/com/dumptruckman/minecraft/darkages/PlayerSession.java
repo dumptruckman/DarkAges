@@ -10,8 +10,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class PlayerSession {
+
+    private static final PotionEffectType CAST_EFFECT = PotionEffectType.CONFUSION;
 
     private class CancelPortalLimitation implements Runnable {
         @Override
@@ -29,6 +33,7 @@ public class PlayerSession {
     private CastingTask castingTask = null;
     private BlockState preCastingBlockState = null;
     private Block castingBlock = null;
+    private boolean confusedBeforeCasting = false;
     private final CancelPortalLimitation portalLimitationCanceller = new CancelPortalLimitation();
 
     public PlayerSession(final DarkAgesPlugin plugin, final Player player, final CharacterData data) {
@@ -62,30 +67,40 @@ public class PlayerSession {
         if (ability.getInfo().castTime() > 0) {
             try {
                 castingTask.runTaskLater(plugin, ability.getInfo().castTime() * 20L);
-                castingBlock = player.getLocation().getBlock();
-                preCastingBlockState = castingBlock.getState();
-                castingBlock.setTypeId(Material.PORTAL.getId(), false);
-                castingBlock.getState().update(true);
-                if (target != null) {
-                    if (target instanceof Player) {
-                        Player targetPlayer = (Player) target;
-                        if (targetPlayer.equals(player)) {
-                            player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.DARK_GRAY + "self" + ChatColor.RESET + "...");
-                        } else {
-                            player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + targetPlayer.getName() + ChatColor.RESET + "...");
-                        }
-                    } else {
-                        player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + target.getType().getName() + ChatColor.RESET + "...");
-                    }
-                } else {
-                    player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + "...");
-                }
+                createCastingEffect(ability);
+                sendCastingMessage(ability);
             } catch (IllegalStateException e) {
                 player.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD + "Something went wrong!!!");
             }
         } else {
             castingTask.run();
             castingTask = null;
+        }
+    }
+
+    private void createCastingEffect(Ability ability) {
+        castingBlock = player.getLocation().getBlock();
+        preCastingBlockState = castingBlock.getState();
+        castingBlock.setTypeId(Material.PORTAL.getId(), false);
+        castingBlock.getState().update(true);
+        confusedBeforeCasting = getPlayer().hasPotionEffect(CAST_EFFECT);
+        getPlayer().addPotionEffect(new PotionEffect(CAST_EFFECT, ability.getInfo().castTime() * 20, 1, true));
+    }
+
+    private void sendCastingMessage(Ability ability) {
+        if (target != null) {
+            if (target instanceof Player) {
+                Player targetPlayer = (Player) target;
+                if (targetPlayer.equals(player)) {
+                    player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.DARK_GRAY + "self" + ChatColor.RESET + "...");
+                } else {
+                    player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + targetPlayer.getName() + ChatColor.RESET + "...");
+                }
+            } else {
+                player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + " on " + ChatColor.BOLD + target.getType().getName() + ChatColor.RESET + "...");
+            }
+        } else {
+            player.sendMessage("Casting " + ability.getDetails().getColor() + ability.getDetails().getName() + ChatColor.RESET + "...");
         }
     }
 
@@ -101,6 +116,9 @@ public class PlayerSession {
     }
 
     public void clearCastTask() {
+        if (castingTask != null && !confusedBeforeCasting) {
+            getPlayer().removePotionEffect(CAST_EFFECT);
+        }
         castingTask = null;
         if (preCastingBlockState != null) {
             preCastingBlockState.update(true);
@@ -118,8 +136,39 @@ public class PlayerSession {
     }
 
     public void regenerateHealthAndMana() {
-        regenerateHealth();
-        regenerateMana();
+        temporaryRegenHealth();
+        //regenerateHealth();
+        //regenerateMana();
+    }
+
+    private void temporaryRegenHealth() {
+        int healthAmount = (int) Math.round(getPlayer().getMaxHealth() * getRegenPercent(11));
+        if (healthAmount + getPlayer().getHealth() > getPlayer().getMaxHealth()) {
+            healthAmount = getPlayer().getMaxHealth() - getPlayer().getHealth();
+        }
+        if (healthAmount < 0) {
+            getPlayer().damage(healthAmount);
+        } else {
+            getPlayer().setHealth(healthAmount);
+        }
+    }
+
+    private double getRegenPercent(int stat) {
+        int diff = stat - data.getLevel();
+        if (diff > 10) {
+            diff = 10;
+        } else if (diff < 0) {
+            diff = 0;
+        }
+        return (diff / 100D + .1D) * getHungerFactor();
+    }
+
+    private static final double FOOD_LEVEL_FACTOR = 1.2D;
+    private static final double MAX_FOOD = 20;
+    private static final double HUNGER_REGEN_OFFSET = 0.05D;
+
+    private double getHungerFactor() {
+        return getPlayer().getFoodLevel() * FOOD_LEVEL_FACTOR / MAX_FOOD - HUNGER_REGEN_OFFSET;
     }
 
     private void regenerateHealth() {
