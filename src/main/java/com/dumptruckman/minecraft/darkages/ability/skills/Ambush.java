@@ -8,10 +8,8 @@ import com.dumptruckman.minecraft.darkages.util.BlockSafety;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -44,13 +42,13 @@ public class Ambush extends Ability {
             player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "No target or not close enough!");
             return false;
         }
-        plugin.getSession(player).setTarget(target);
+        plugin.getPlayerSession(player).setTarget(target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = plugin.getSession(player).getTarget();
+        LivingEntity target = plugin.getPlayerSession(player).getTarget();
         Location tpLoc = null;
         Vector tVec = target.getLocation().toVector();
         Vector dir = player.getLocation().getDirection();

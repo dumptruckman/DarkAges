@@ -6,9 +6,10 @@ import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
 import com.dumptruckman.minecraft.darkages.util.EntityTools;
 import net.minecraft.server.v1_5_R2.EntityFireworks;
-import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftFirework;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -57,13 +58,13 @@ public class BeagIoc extends Ability {
         } else {
             player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Targeting " + ((Player) target).getName() + "...");
         }
-        plugin.getSession(player).setTarget(target);
+        plugin.getPlayerSession(player).setTarget(target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = plugin.getSession(player).getTarget();
+        LivingEntity target = plugin.getPlayerSession(player).getTarget();
         int newHealth = target.getHealth();
         newHealth += HEAL_AMOUNT;
         if (newHealth > 20) {

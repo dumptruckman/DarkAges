@@ -7,18 +7,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 public class PlayerSession {
 
     private class CancelPortalLimitation implements Runnable {
         @Override
         public void run() {
-            portalLimitation = false;
+            castingBlock = null;
         }
     }
 
@@ -30,7 +28,7 @@ public class PlayerSession {
     private LivingEntity target = null;
     private CastingTask castingTask = null;
     private BlockState preCastingBlockState = null;
-    private boolean portalLimitation = false;
+    private Block castingBlock = null;
     private final CancelPortalLimitation portalLimitationCanceller = new CancelPortalLimitation();
 
     public PlayerSession(final DarkAgesPlugin plugin, final Player player, final CharacterData data) {
@@ -63,7 +61,7 @@ public class PlayerSession {
         castingTask = new CastingTask(this, ability);
         if (ability.getInfo().castTime() > 0) {
             try {
-                Block castingBlock = player.getLocation().getBlock();
+                castingBlock = player.getLocation().getBlock();
                 preCastingBlockState = castingBlock.getState();
                 castingBlock.setTypeId(Material.PORTAL.getId(), false);
                 castingBlock.getState().update(true);
@@ -89,7 +87,6 @@ public class PlayerSession {
     }
 
     public void clearCastTask() {
-        portalLimitation = true;
         castingTask = null;
         if (preCastingBlockState != null) {
             preCastingBlockState.update(true);
@@ -99,7 +96,11 @@ public class PlayerSession {
     }
 
     public boolean isAllowedToPortal() {
-        return !isCasting() && !portalLimitation;
+        return !isCasting() && castingBlock == null;
+    }
+
+    public Block getCastingBlock() {
+        return castingBlock;
     }
 
     public void regenerateHealthAndMana() {

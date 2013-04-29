@@ -1,18 +1,10 @@
 package com.dumptruckman.minecraft.darkages.ability.skills;
 
 import com.dumptruckman.minecraft.darkages.DarkAgesPlugin;
-import com.dumptruckman.minecraft.darkages.ability.Ability;
 import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.AbilityInfo;
-import com.dumptruckman.minecraft.darkages.util.BlockSafety;
-import com.dumptruckman.minecraft.darkages.util.EntityTools;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 @AbilityInfo(
         details = AbilityDetails.SHADOW_FIGURE,
@@ -37,7 +29,7 @@ public class ShadowFigure extends Ambush {
     @Override
     protected boolean onAbilityUse(final Player player) {
         if (super.onAbilityUse(player)) {
-            LivingEntity target = plugin.getSession(player).getTarget();
+            LivingEntity target = plugin.getPlayerSession(player).getTarget();
             target.damage(1, player);
             return true;
         }

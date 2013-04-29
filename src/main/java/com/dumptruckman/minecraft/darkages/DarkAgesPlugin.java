@@ -12,7 +12,12 @@ import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
 import com.dumptruckman.minecraft.darkages.arena.Arena;
 import com.dumptruckman.minecraft.darkages.arena.ArenaListener;
 import com.dumptruckman.minecraft.darkages.character.CharacterData;
-import com.dumptruckman.minecraft.darkages.listeners.*;
+import com.dumptruckman.minecraft.darkages.listeners.AbilityUseListener;
+import com.dumptruckman.minecraft.darkages.listeners.DeathHandler;
+import com.dumptruckman.minecraft.darkages.listeners.ItemUpdateAndDropListener;
+import com.dumptruckman.minecraft.darkages.listeners.PlayerCancelCastListener;
+import com.dumptruckman.minecraft.darkages.listeners.PlayerMoveListener;
+import com.dumptruckman.minecraft.darkages.listeners.PortalListener;
 import com.dumptruckman.minecraft.darkages.menu.LearningMenu;
 import com.dumptruckman.minecraft.darkages.menu.SkillMenu;
 import com.dumptruckman.minecraft.darkages.menu.SpellMenu;
@@ -49,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -279,7 +285,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @NotNull
-    public PlayerSession getSession(@NotNull final Player player) {
+    public PlayerSession getPlayerSession(@NotNull final Player player) {
         PlayerSession session = playerSessions.get(player);
         if (session == null) {
             File folder = new File(getDataFolder(), "players");
@@ -314,13 +320,17 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @Nullable
-    public PlayerSession getSessionWhereTargeted(@NotNull final Player player) {
+    public PlayerSession getPlayerSessionWhereTargeted(@NotNull final Player player) {
         for (PlayerSession session : playerSessions.values()) {
             if (session.getTarget() != null && session.getTarget().equals(player)) {
                 return session;
             }
         }
         return null;
+    }
+
+    public Collection<PlayerSession> getPlayerSessions() {
+        return playerSessions.values();
     }
 
     @Nullable

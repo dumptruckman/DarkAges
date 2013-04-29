@@ -23,7 +23,7 @@ public class PlayerMoveListener implements Listener {
         if (from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ() && from.getBlockY() == to.getBlockY()) {
             return;
         }
-        PlayerSession session = plugin.getSession(event.getPlayer());
+        PlayerSession session = plugin.getPlayerSession(event.getPlayer());
         session.cancelCast();
     }
 }
