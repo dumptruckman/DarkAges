@@ -71,7 +71,7 @@ public class ArenaListener implements Listener {
                 }
                 if (killer != null) {
                     if (killer instanceof Player) {
-                        killerName = ((Player) killer).getDisplayName();
+                        killerName = ((Player) killer).getName();
                     } else {
                         killerName = killer.getType().getName();
                     }
@@ -81,7 +81,7 @@ public class ArenaListener implements Listener {
                 killerName = edbb.getDamager().getType().name().toLowerCase().replaceAll("_", " ");
             }
 
-            arenaDeathMessage(player.getWorld(), regionManager.getRegion(arena.getRegionId()), player.getDisplayName(), killerName);
+            arenaDeathMessage(player.getWorld(), regionManager.getRegion(arena.getRegionId()), player.getName(), killerName);
 
             player.setHealth(1);
             l = arena.getRespawnLocation();
