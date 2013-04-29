@@ -146,10 +146,11 @@ public class PlayerSession {
         if (healthAmount + getPlayer().getHealth() > getPlayer().getMaxHealth()) {
             healthAmount = getPlayer().getMaxHealth() - getPlayer().getHealth();
         }
+
         if (healthAmount < 0) {
             getPlayer().damage(healthAmount);
         } else {
-            getPlayer().setHealth(healthAmount);
+            getPlayer().setHealth(healthAmount + getPlayer().getHealth());
         }
     }
 

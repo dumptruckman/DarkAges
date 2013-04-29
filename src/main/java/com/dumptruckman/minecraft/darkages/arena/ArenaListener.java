@@ -18,6 +18,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +43,10 @@ public class ArenaListener implements Listener {
             return;
         }
         final Player player = (Player) event.getEntity();
+        if (event.getCause() == DamageCause.STARVATION) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getDamage() < player.getHealth()) {
             return;
         }
@@ -107,6 +114,13 @@ public class ArenaListener implements Listener {
                     player.sendMessage(ChatColor.DARK_RED + deadGuy + " was killed!");
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void entityRegen(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player && event.getRegainReason() == RegainReason.SATIATED) {
+            event.setCancelled(true);
         }
     }
 

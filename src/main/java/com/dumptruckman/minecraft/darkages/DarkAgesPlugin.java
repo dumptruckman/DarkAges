@@ -21,6 +21,7 @@ import com.dumptruckman.minecraft.darkages.listeners.PortalListener;
 import com.dumptruckman.minecraft.darkages.menu.LearningMenu;
 import com.dumptruckman.minecraft.darkages.menu.SkillMenu;
 import com.dumptruckman.minecraft.darkages.menu.SpellMenu;
+import com.dumptruckman.minecraft.darkages.tasks.TickTask;
 import com.dumptruckman.minecraft.darkages.util.CitizensLink;
 import com.dumptruckman.minecraft.darkages.util.ImmutableLocation;
 import com.dumptruckman.minecraft.darkages.util.Log;
@@ -127,6 +128,9 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+        // Setup tick task
+        new TickTask(this).runTaskTimer(this, 1L, 1L);
     }
 
     private File getArenasFile() {
