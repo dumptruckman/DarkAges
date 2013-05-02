@@ -194,53 +194,52 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         if (args[0].startsWith("/") && args[0].length() > 1) {
             args[0] = args[0].substring(1);
         }
-        if (!args[0].equalsIgnoreCase("register")) {
-            return;
-        }
-        event.setCancelled(true);
         final Player player = event.getPlayer();
-        if (args.length < 3) {
-            player.sendMessage("usage: /register <email> <password>");
-            return;
-        }
-        try {
-            final String email = args[1];
-            final String password = args[2];
-            final WebsiteConnection connection = new WebsiteConnection(this, player);
-            if (!connection.isValidEmailAddress(email)) {
-                player.sendMessage(ChatColor.RED + "The email address you entered does not appear to be valid!");
+        if (args[0].equalsIgnoreCase("register")) {
+            event.setCancelled(true);
+            if (args.length < 3) {
+                player.sendMessage("usage: /register <email> <password>");
                 return;
             }
-            if (password.length() < 6) {
-                player.sendMessage(ChatColor.RED + "Your password should be at least 6 characters in length!");
-                return;
-            }
-            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Just a moment...");
-            Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        connection.registerUser(password, email);
-                        Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
-                            @Override
-                            public void run() {
-                                player.sendMessage(ChatColor.GREEN + "You have successfully registered for the website!");
-                                player.sendMessage(ChatColor.GRAY + "Your username is the same as your minecraft username!");
-                            }
-                        });
-                    } catch (final Exception e) {
-                        Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
-                            @Override
-                            public void run() {
-                                player.sendMessage(ChatColor.RED + e.getMessage());
-                            }
-                        });
-                    }
+            try {
+                final String email = args[1];
+                final String password = args[2];
+                final WebsiteConnection connection = new WebsiteConnection(this, player);
+                if (!connection.isValidEmailAddress(email)) {
+                    player.sendMessage(ChatColor.RED + "The email address you entered does not appear to be valid!");
+                    return;
                 }
-            });
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            player.sendMessage(ChatColor.RED + "Yikes! Something went wrong.  Contact dumptruckman!");
+                if (password.length() < 6) {
+                    player.sendMessage(ChatColor.RED + "Your password should be at least 6 characters in length!");
+                    return;
+                }
+                player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Just a moment...");
+                Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            connection.registerUser(password, email);
+                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
+                                @Override
+                                public void run() {
+                                    player.sendMessage(ChatColor.GREEN + "You have successfully registered for the website!");
+                                    player.sendMessage(ChatColor.GRAY + "Your username is the same as your minecraft username!");
+                                }
+                            });
+                        } catch (final Exception e) {
+                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
+                                @Override
+                                public void run() {
+                                    player.sendMessage(ChatColor.RED + e.getMessage());
+                                }
+                            });
+                        }
+                    }
+                });
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                player.sendMessage(ChatColor.RED + "Yikes! Something went wrong.  Contact dumptruckman!");
+            }
         }
     }
 
