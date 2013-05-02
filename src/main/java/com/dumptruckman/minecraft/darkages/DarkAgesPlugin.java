@@ -27,6 +27,7 @@ import com.dumptruckman.minecraft.darkages.util.ImmutableLocation;
 import com.dumptruckman.minecraft.darkages.util.Log;
 import com.dumptruckman.minecraft.darkages.util.StringTools;
 import com.dumptruckman.minecraft.darkages.util.TownyLink;
+import com.dumptruckman.minecraft.darkages.website.WebsiteConnection;
 import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -43,6 +44,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -55,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,10 +154,93 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @EventHandler
+    public void playerJoin(PlayerJoinEvent event) {
+        final Player player = event.getPlayer();
+        try {
+            final WebsiteConnection connection = new WebsiteConnection(this, player);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!connection.isUserRegistered()) {
+                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
+                                @Override
+                                public void run() {
+                                    player.sendMessage(ChatColor.AQUA + "If you like the server, check out the website " + ChatColor.BLUE + ChatColor.UNDERLINE + "http://gnarbros.dyndns.org");
+                                    player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "To register for a website account type " + ChatColor.GOLD + "/register");
+                                }
+                            });
+                        }
+                        connection.closeConnection();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, 30L);
+        } catch (ClassNotFoundException ignore) { }
+    }
+
+    @EventHandler
     public void playerQuit(PlayerQuitEvent event) {
         if (playerSessions.containsKey(event.getPlayer())) {
             playerSessions.get(event.getPlayer()).endSession();
             playerSessions.remove(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void playerCommand(PlayerCommandPreprocessEvent event) {
+        String[] args = event.getMessage().split(" ");
+        if (args[0].startsWith("/") && args[0].length() > 1) {
+            args[0] = args[0].substring(1);
+        }
+        if (!args[0].equalsIgnoreCase("register")) {
+            return;
+        }
+        event.setCancelled(true);
+        final Player player = event.getPlayer();
+        if (args.length < 3) {
+            player.sendMessage("usage: /register <email> <password>");
+            return;
+        }
+        try {
+            final String email = args[1];
+            final String password = args[2];
+            final WebsiteConnection connection = new WebsiteConnection(this, player);
+            if (!connection.isValidEmailAddress(email)) {
+                player.sendMessage(ChatColor.RED + "The email address you entered does not appear to be valid!");
+                return;
+            }
+            if (password.length() < 6) {
+                player.sendMessage(ChatColor.RED + "Your password should be at least 6 characters in length!");
+                return;
+            }
+            player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Just a moment...");
+            Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        connection.registerUser(password, email);
+                        Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
+                            @Override
+                            public void run() {
+                                player.sendMessage(ChatColor.GREEN + "You have successfully registered for the website!");
+                                player.sendMessage(ChatColor.GRAY + "Your username is the same as your minecraft username!");
+                            }
+                        });
+                    } catch (final Exception e) {
+                        Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
+                            @Override
+                            public void run() {
+                                player.sendMessage(ChatColor.RED + e.getMessage());
+                            }
+                        });
+                    }
+                }
+            });
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            player.sendMessage(ChatColor.RED + "Yikes! Something went wrong.  Contact dumptruckman!");
         }
     }
 
