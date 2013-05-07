@@ -148,7 +148,7 @@ public class PlayerSession {
         }
 
         if (healthAmount < 0) {
-            getPlayer().damage(healthAmount);
+            getPlayer().damage(-healthAmount);
         } else {
             getPlayer().setHealth(healthAmount + getPlayer().getHealth());
         }
