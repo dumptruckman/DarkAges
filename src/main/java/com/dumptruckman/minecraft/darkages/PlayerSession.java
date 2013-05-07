@@ -136,20 +136,28 @@ public class PlayerSession {
     }
 
     public void regenerateHealthAndMana() {
-        temporaryRegenHealth();
+        if (player.getHealth() != 20 || player.getFoodLevel() == 0) {
+            temporaryRegenHealth();
+        }
         //regenerateHealth();
         //regenerateMana();
     }
 
     private void temporaryRegenHealth() {
-        int healthAmount = (int) Math.round(getPlayer().getMaxHealth() * getRegenPercent(11));
+        double regen = getPlayer().getMaxHealth() * getRegenPercent(11);
+        int healthAmount;
+        if (regen < 0) {
+            healthAmount = (int) Math.floor(regen);
+        } else {
+            healthAmount = (int) Math.round(regen);
+        }
         if (healthAmount + getPlayer().getHealth() > getPlayer().getMaxHealth()) {
             healthAmount = getPlayer().getMaxHealth() - getPlayer().getHealth();
         }
 
         if (healthAmount < 0) {
             getPlayer().damage(-healthAmount);
-        } else {
+        } else if (healthAmount > 0) {
             getPlayer().setHealth(healthAmount + getPlayer().getHealth());
         }
     }
