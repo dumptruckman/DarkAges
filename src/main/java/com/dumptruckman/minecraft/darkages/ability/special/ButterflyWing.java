@@ -44,6 +44,6 @@ public class ButterflyWing extends Ability {
         }
         player.playSound(player.getLocation(), Sound.BAT_TAKEOFF, 0.5F, 0.5F);
         player.teleport(loc);
-        return true;
+        return player.getLocation().equals(loc);
     }
 }
