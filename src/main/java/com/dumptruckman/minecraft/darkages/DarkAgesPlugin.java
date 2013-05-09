@@ -6,6 +6,7 @@ import com.dumptruckman.minecraft.darkages.ability.AbilityDetails;
 import com.dumptruckman.minecraft.darkages.ability.CustomEnchantment;
 import com.dumptruckman.minecraft.darkages.ability.skills.Ambush;
 import com.dumptruckman.minecraft.darkages.ability.skills.ShadowFigure;
+import com.dumptruckman.minecraft.darkages.ability.special.ButterflyWing;
 import com.dumptruckman.minecraft.darkages.ability.special.SoulStone;
 import com.dumptruckman.minecraft.darkages.ability.spells.BeagIoc;
 import com.dumptruckman.minecraft.darkages.ability.spells.Dachaidh;
@@ -117,9 +118,13 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         getServer().getPluginManager().registerEvents(this, this);
 
         // Setup recipes
-        ShapelessRecipe soulStoneRecipe = new ShapelessRecipe(new ItemStack(AbilityDetails.SOUL_STONE.getItemStack()));
-        soulStoneRecipe.addIngredient(1, Material.GHAST_TEAR);
-        Bukkit.addRecipe(soulStoneRecipe);
+        ShapelessRecipe recipe = new ShapelessRecipe(new ItemStack(AbilityDetails.SOUL_STONE.getItemStack()));
+        recipe.addIngredient(1, Material.GHAST_TEAR);
+        Bukkit.addRecipe(recipe);
+
+        recipe = new ShapelessRecipe(new ItemStack(AbilityDetails.BUTTERFLY_WING.getItemStack()));
+        recipe.addIngredient(5, Material.FEATHER);
+        Bukkit.addRecipe(recipe);
 
         // Load arenas
         loadArenas();
@@ -258,6 +263,7 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
 
     private void initializeAbilities() {
         new SoulStone(this);
+        new ButterflyWing(this);
         new Ambush(this);
         new ShadowFigure(this);
         new BeagIoc(this);

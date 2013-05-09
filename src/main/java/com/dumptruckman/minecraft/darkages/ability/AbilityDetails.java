@@ -10,6 +10,7 @@ public enum AbilityDetails {
     AMBUSH(CharacterClass.MONK, false, "Ambush", AbilityType.SKILL, ChatColor.WHITE, 5, new ItemStack(Material.ARROW), new ItemStack(Material.ARROW)),
     SHADOW_FIGURE(CharacterClass.ROGUE, true, "Shadow Figure", AbilityType.SKILL, ChatColor.WHITE, 35, new ItemStack(Material.ARROW), new ItemStack(Material.ARROW)),
     SOUL_STONE("Soul Stone", AbilityType.SPECIAL, ChatColor.DARK_GRAY, 0, new ItemStack(Material.GHAST_TEAR)),
+    BUTTERFLY_WING("Butterfly Wing", AbilityType.SPECIAL, ChatColor.AQUA, 0, new ItemStack(Material.FEATHER)),
     BEAG_IOC(CharacterClass.PRIEST, false, "beag ioc", AbilityType.SPELL, ChatColor.BLUE, 5, new ItemStack(Material.SPECKLED_MELON), new ItemStack(Material.INK_SACK, 1, (short) 15)),
     DACHAIDH("dachaidh", AbilityType.SPELL, ChatColor.GRAY, 7, new ItemStack(Material.COMPASS), new ItemStack(Material.FEATHER, 5)),
     ;
