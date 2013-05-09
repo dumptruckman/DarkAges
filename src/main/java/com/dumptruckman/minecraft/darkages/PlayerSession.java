@@ -136,7 +136,7 @@ public class PlayerSession {
     }
 
     public void regenerateHealthAndMana() {
-        if (player.getHealth() != 20 || player.getFoodLevel() == 0) {
+        if (!player.isDead() && (player.getHealth() != player.getMaxHealth() || player.getFoodLevel() == 0)) {
             temporaryRegenHealth();
         }
         //regenerateHealth();
