@@ -1,5 +1,5 @@
 name: DarkAges
-main: com.dumptruckman.minecraft.darkages.DarkAgesPlugin
+main: darkages.DarkAgesPlugin
 version: maven-version-number
 depend: [Vault,WorldGuard]
 softdepend: [Citizens,Towny]

@@ -141,11 +141,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.dumptruckman.minecraft.pluginbase</pattern>
-                                    <shadedPattern>com.dumptruckman.minecraft.darkages.pluginbase</shadedPattern>
+                                    <shadedPattern>darkages.pluginbase</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.dumptruckman.minecraft.actionmenu</pattern>
-                                    <shadedPattern>com.dumptruckman.minecraft.darkages.actionmenu</shadedPattern>
+                                    <shadedPattern>darkages.actionmenu</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
