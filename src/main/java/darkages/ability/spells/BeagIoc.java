@@ -5,11 +5,11 @@ import darkages.ability.Ability;
 import darkages.ability.AbilityDetails;
 import darkages.ability.AbilityInfo;
 import darkages.util.EntityTools;
-import net.minecraft.server.v1_5_R3.EntityFireworks;
+import net.minecraft.server.v1_6_R3.EntityFireworks;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_5_R3.entity.CraftFirework;
+import org.bukkit.craftbukkit.v1_6_R3.entity.CraftFirework;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
@@ -59,7 +59,7 @@ public class BeagIoc extends Ability {
     @Override
     protected boolean onAbilityUse(final Player player) {
         LivingEntity target = plugin.getPlayerSession(player).getTarget();
-        int newHealth = target.getHealth();
+        double newHealth = target.getHealth();
         newHealth += HEAL_AMOUNT;
         if (newHealth > 20) {
             newHealth = 20;

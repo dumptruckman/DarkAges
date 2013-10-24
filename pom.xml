@@ -158,8 +158,15 @@
     <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.6.4-R1.0</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
-            <version>1.5.2-R0.1-SNAPSHOT</version>
+            <version>1.6.4-R1.0</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>

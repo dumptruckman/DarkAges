@@ -145,7 +145,7 @@ public class PlayerSession {
 
     private void temporaryRegenHealth() {
         double regen = getPlayer().getMaxHealth() * getRegenPercent(11);
-        int healthAmount;
+        double healthAmount;
         if (regen < 0) {
             healthAmount = (int) Math.floor(regen);
         } else {
