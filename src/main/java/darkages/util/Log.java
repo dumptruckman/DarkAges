@@ -1,8 +1,8 @@
 package darkages.util;
 
-import com.dumptruckman.minecraft.pluginbase.logging.PluginLogger;
 import darkages.DarkAgesPlugin;
 import org.jetbrains.annotations.NotNull;
+import pluginbase.logging.PluginLogger;
 
 import java.util.logging.Level;
 

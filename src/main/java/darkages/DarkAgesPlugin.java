@@ -1,7 +1,6 @@
 package darkages;
 
 import com.dumptruckman.minecraft.actionmenu.prefab.SingleViewMenu;
-import com.dumptruckman.minecraft.pluginbase.logging.LoggablePlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import darkages.ability.Ability;
@@ -55,6 +54,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pluginbase.logging.LoggablePlugin;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,7 +1,5 @@
 package darkages.listeners;
 
-import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
-import com.dumptruckman.minecraft.pluginbase.minecraft.location.Locations;
 import darkages.DarkAgesPlugin;
 import darkages.ability.Ability;
 import org.bukkit.Bukkit;
@@ -13,6 +11,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import pluginbase.minecraft.location.EntityCoordinates;
+import pluginbase.minecraft.location.Locations;
 
 import java.util.HashMap;
 import java.util.HashSet;

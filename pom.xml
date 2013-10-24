@@ -140,7 +140,7 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.dumptruckman.minecraft.pluginbase</pattern>
+                                    <pattern>pluginbase</pattern>
                                     <shadedPattern>darkages.pluginbase</shadedPattern>
                                 </relocation>
                                 <relocation>
@@ -179,14 +179,7 @@
         </dependency>
         <dependency>
             <groupId>com.dumptruckman.minecraft.pluginbase</groupId>
-            <artifactId>Properties-Bukkit</artifactId>
-            <version>1.5-SNAPSHOT</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.dumptruckman.minecraft.pluginbase</groupId>
-            <artifactId>MinecraftLink</artifactId>
+            <artifactId>Plugin-Bukkit</artifactId>
             <version>1.5-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>

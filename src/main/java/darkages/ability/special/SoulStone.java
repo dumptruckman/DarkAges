@@ -1,6 +1,5 @@
 package darkages.ability.special;
 
-import com.dumptruckman.minecraft.pluginbase.minecraft.location.EntityCoordinates;
 import darkages.DarkAgesPlugin;
 import darkages.ability.Ability;
 import darkages.ability.AbilityDetails;
@@ -11,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import pluginbase.minecraft.location.EntityCoordinates;
 
 @AbilityInfo(
         details = AbilityDetails.SOUL_STONE,
