@@ -30,8 +30,6 @@ public final class PlayerSession {
 
     private final PlayerCharacter character;
 
-    private final long id;
-
     private LivingEntity target = null;
     private CastingTask castingTask = null;
     private BlockState preCastingBlockState = null;
@@ -39,10 +37,9 @@ public final class PlayerSession {
     private boolean confusedBeforeCasting = false;
     private final CancelPortalLimitation portalLimitationCanceller = new CancelPortalLimitation();
 
-    PlayerSession(final DarkAgesPlugin plugin, final Player player, long id, final PlayerCharacter character) {
+    PlayerSession(final DarkAgesPlugin plugin, final Player player, final PlayerCharacter character) {
         this.plugin = plugin;
         this.player = player;
-        this.id = id;
         this.character = character;
     }
 
@@ -50,8 +47,8 @@ public final class PlayerSession {
         return player;
     }
 
-    public long getId() {
-        return id;
+    public long getPlayerId() {
+        return character.getPlayerId();
     }
 
     public PlayerCharacter getCharacter() {

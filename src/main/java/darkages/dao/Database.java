@@ -1,11 +1,14 @@
 package darkages.dao;
 
 import darkages.character.PlayerCharacter;
-import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface Database {
 
-    long getPlayerId(Player player);
+    @Nullable
+    PlayerCharacter getSelectedCharacter(String playerName);
 
-    PlayerCharacter getSelectedCharacter(long playerId);
+    @NotNull
+    PlayerCharacter createCharacter(String playerName);
 }

@@ -69,7 +69,7 @@ public class DarkAgesPlugin extends AbstractBukkitPlugin {
     private SessionManager sessionManager;
 
     private SpringJdbcAgent jdbcAgent;
-    private DatabaseThread dbThread;
+    private MultiThreadedDatabase dbThread;
 
     private final Map<String, Arena> arenas = new HashMap<String, Arena>(5);
 
@@ -139,8 +139,7 @@ public class DarkAgesPlugin extends AbstractBukkitPlugin {
 
         // Setup jdbc agent
         initializeDatabase();
-        dbThread = new DatabaseThread(getJdbcAgent());
-        dbThread.start();
+        dbThread = new MultiThreadedDatabase(getJdbcAgent());
     }
 
     private void initializeDatabase() {
@@ -199,7 +198,11 @@ public class DarkAgesPlugin extends AbstractBukkitPlugin {
     public void onPluginDisable() {
         Ability.ABILITY_ITEMS.clear();
         Ability.LEARNING_ITEMS.clear();
-        dbThread.interrupt();
+        try {
+            dbThread.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

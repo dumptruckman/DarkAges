@@ -10,12 +10,17 @@ import java.util.Map;
 
 public class CharacterStats implements ConfigurationSerializable {
 
-    private int level = 1, exp = 0;
+    private long characterId;
+
+    private byte level = 1;
+    private long exp = 0;
     private int health = 50, maxHealth = 50;
     private int mana = 50, maxMana = 50;
-    private int strength = 3, dexterity = 3, constitution = 3, intelligence = 3, wisdom = 3;
+    private short strength = 3, dexterity = 3, constitution = 3, intelligence = 3, wisdom = 3;
 
-    public CharacterStats() { }
+    public CharacterStats(long characterId) {
+        this.characterId = characterId;
+    }
 
     public CharacterStats(Map<String, Object> data) {
         for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -32,6 +37,10 @@ public class CharacterStats implements ConfigurationSerializable {
                 e.printStackTrace();
             }
         }
+    }
+
+    public long getCharacterId() {
+        return characterId;
     }
 
     @Override
@@ -53,31 +62,31 @@ public class CharacterStats implements ConfigurationSerializable {
         return result;
     }
 
-    public int getStrength() {
+    public short getStrength() {
         return strength;
     }
 
-    public int getDexterity() {
+    public short getDexterity() {
         return dexterity;
     }
 
-    public int getConstitution() {
+    public short getConstitution() {
         return constitution;
     }
 
-    public int getIntelligence() {
+    public short getIntelligence() {
         return intelligence;
     }
 
-    public int getWisdom() {
+    public short getWisdom() {
         return wisdom;
     }
 
-    public int getLevel() {
+    public byte getLevel() {
         return level;
     }
 
-    public int getExp() {
+    public long getExp() {
         return exp;
     }
 
@@ -97,31 +106,31 @@ public class CharacterStats implements ConfigurationSerializable {
         return maxMana;
     }
 
-    public void setStrength(final int strength) {
+    public void setStrength(short strength) {
         this.strength = strength;
     }
 
-    public void setDexterity(final int dexterity) {
+    public void setDexterity(short dexterity) {
         this.dexterity = dexterity;
     }
 
-    public void setConstitution(final int constitution) {
+    public void setConstitution(short constitution) {
         this.constitution = constitution;
     }
 
-    public void setIntelligence(final int intelligence) {
+    public void setIntelligence(short intelligence) {
         this.intelligence = intelligence;
     }
 
-    public void setWisdom(final int wisdom) {
+    public void setWisdom(short wisdom) {
         this.wisdom = wisdom;
     }
 
-    public void setLevel(final int level) {
+    public void setLevel(byte level) {
         this.level = level;
     }
 
-    public void setExp(final int exp) {
+    public void setExp(final long exp) {
         this.exp = exp;
     }
 
@@ -139,5 +148,23 @@ public class CharacterStats implements ConfigurationSerializable {
 
     public void setMaxMana(final int maxMana) {
         this.maxMana = maxMana;
+    }
+
+    @Override
+    public String toString() {
+        return "CharacterStats{" +
+                "characterId=" + characterId +
+                ", level=" + level +
+                ", exp=" + exp +
+                ", health=" + health +
+                ", maxHealth=" + maxHealth +
+                ", mana=" + mana +
+                ", maxMana=" + maxMana +
+                ", strength=" + strength +
+                ", dexterity=" + dexterity +
+                ", constitution=" + constitution +
+                ", intelligence=" + intelligence +
+                ", wisdom=" + wisdom +
+                '}';
     }
 }

@@ -71,10 +71,14 @@ public final class SessionManager implements Listener {
         }
         */
         //PlayerSession session = new PlayerSession(plugin, player, data);
-        long playerId = plugin.getDAO().getPlayerId(player);
-        Log.finer("Got player ID '%s' for '%s'", playerId, player.getName());
-        PlayerCharacter character = plugin.getDAO().getSelectedCharacter(playerId);
-        PlayerSession session = new PlayerSession(plugin, player, playerId, character);
+        PlayerCharacter character = plugin.getDAO().getSelectedCharacter(player.getName());
+        if (character == null) {
+            character = plugin.getDAO().createCharacter(player.getName());
+            Log.fine("Created character '%s' for '%s'", character, player.getName());
+        } else {
+            Log.finer("Got character '%s' for '%s'", character, player.getName());
+        }
+        PlayerSession session = new PlayerSession(plugin, player, character);
 
         playerSessions.put(player, session);
         return session;

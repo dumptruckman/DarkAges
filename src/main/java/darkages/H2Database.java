@@ -4,11 +4,11 @@ import darkages.character.CharacterStats;
 import darkages.character.PlayerCharacter;
 import darkages.dao.Database;
 import darkages.util.Log;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.SqlProvider;
 import org.springframework.jdbc.core.StatementCallback;
@@ -25,6 +25,8 @@ import java.sql.Statement;
 
 class H2Database implements Database {
 
+    public static final long NOT_FOUND_ID = -1L;
+
     private static final String PLAYER_TABLE = "Player";
     private static final String PLAYER_ID = "PlayerId";
     private static final String PLAYER_NAME = "Name";
@@ -33,7 +35,6 @@ class H2Database implements Database {
     private static final String CHARACTER_ID = "CharacterId";
     private static final String CHARACTER_NAME = "Name";
     private static final String CHARACTER_STATS_TABLE = "CharacterStats";
-    private static final String CHARACTER_STATS_ID = "CharacterStatsId";
     private static final String CHARACTER_SELECTION_TABLE = "CharacterSelection";
 
     @NotNull
@@ -53,17 +54,69 @@ class H2Database implements Database {
     }
 
     @Override
-    public long getPlayerId(Player player) {
+    public PlayerCharacter getSelectedCharacter(String playerName) {
         JdbcTemplate jdbcTemplate = agent.createJdbcTemplate();
-        PlayerId idRetriever = new PlayerId(player.getName());
-        return idRetriever.getId(jdbcTemplate);
+        long playerId = getPlayerId(jdbcTemplate, playerName);
+        if (playerId == NOT_FOUND_ID) {
+            return null;
+        }
+        long characterId = getSelectedCharacterId(jdbcTemplate, playerId);
+        CharacterStats stats = getCharacterStats(jdbcTemplate, characterId);
+        return new PlayerCharacter(playerId, stats);
     }
 
-    @Override
-    public PlayerCharacter getSelectedCharacter(long playerId) {
+    private long getPlayerId(JdbcTemplate jdbcTemplate, String playerName) {
+        PlayerIdRetriever idRetriever = new PlayerIdRetriever(playerName);
+        jdbcTemplate.query(idRetriever, idRetriever);
+        return idRetriever.getId();
+    }
 
-        // TODO
-        return new PlayerCharacter(playerId, new CharacterStats());
+    private long getSelectedCharacterId(JdbcTemplate jdbcTemplate, long playerId) {
+        CharacterSelectionRetriever idRetriever = new CharacterSelectionRetriever(playerId);
+        jdbcTemplate.query(idRetriever, idRetriever);
+        return idRetriever.getCharacterId();
+    }
+
+    private CharacterStats getCharacterStats(JdbcTemplate jdbcTemplate, long characterId) {
+        Log.finest("Retrieving character stats for character id %s", characterId);
+        CharacterStatsRetriever statsRetriever = new CharacterStatsRetriever(characterId);
+        return jdbcTemplate.query(statsRetriever, statsRetriever);
+    }
+
+    @NotNull
+    @Override
+    public PlayerCharacter createCharacter(String playerName) {
+        JdbcTemplate jdbcTemplate = agent.createJdbcTemplate();
+        long playerId = createPlayer(jdbcTemplate, playerName);
+        long characterId = createCharacter(jdbcTemplate, playerId, playerName);
+        selectCharacter(jdbcTemplate, playerId, characterId);
+        CharacterStats stats = createCharacterStats(jdbcTemplate, characterId);
+        return new PlayerCharacter(playerId, stats);
+    }
+
+    private long createPlayer(JdbcTemplate jdbcTemplate, String playerName) {
+        Log.fine("Player '%s' not found in database.  Creating new entry.", playerName);
+        PlayerIdCreator idCreator = new PlayerIdCreator(playerName);
+        KeyHolder generatedKeys = new GeneratedKeyHolder();
+        jdbcTemplate.update(idCreator, generatedKeys);
+        return generatedKeys.getKey().longValue();
+    }
+
+    private long createCharacter(JdbcTemplate jdbcTemplate, long playerId, String characterName) {
+        CharacterCreator characterCreator = new CharacterCreator(playerId, characterName);
+        KeyHolder generatedKeys = new GeneratedKeyHolder();
+        jdbcTemplate.update(characterCreator, generatedKeys);
+        return generatedKeys.getKey().longValue();
+    }
+
+    private void selectCharacter(JdbcTemplate jdbcTemplate, long playerId, long characterId) {
+        jdbcTemplate.update(new CharacterSelector(playerId, characterId));
+    }
+
+    private CharacterStats createCharacterStats(JdbcTemplate jdbcTemplate, long characterId) {
+        CharacterStats stats = new CharacterStats(characterId);
+        jdbcTemplate.update(new CharacterStatsCreator(stats));
+        return stats;
     }
 
     static class PlayerTable implements StatementCallback, SqlProvider {
@@ -115,14 +168,13 @@ class H2Database implements Database {
         @Override
         public String getSql() {
             return "CREATE TABLE IF NOT EXISTS " + CHARACTER_STATS_TABLE + " ("
-                    + CHARACTER_STATS_ID + " BIGINT IDENTITY, "
-                    + CHARACTER_ID + " BIGINT NOT NULL, "
+                    + CHARACTER_ID + " BIGINT NOT NULL PRIMARY KEY, "
                     + "Level TINYINT DEFAULT 1 NOT NULL, "
                     + "Experience BIGINT DEFAULT 0 NOT NULL, "
-                    + "MaxHp INT DEFAULT 50 NOT NULL, "
-                    + "MaxMp INT DEFAULT 50 NOT NULL, "
-                    + "CurrentHp INT DEFAULT 50 NOT NULL, "
-                    + "CurrentMp INT DEFAULT 50 NOT NULL, "
+                    + "MaxHealth INT DEFAULT 50 NOT NULL, "
+                    + "MaxMana INT DEFAULT 50 NOT NULL, "
+                    + "Health INT DEFAULT 50 NOT NULL, "
+                    + "Mana INT DEFAULT 50 NOT NULL, "
                     + "Strength SMALLINT DEFAULT 3 NOT NULL, "
                     + "Dexterity SMALLINT DEFAULT 3 NOT NULL, "
                     + "Constitution SMALLINT DEFAULT 3 NOT NULL, "
@@ -152,19 +204,12 @@ class H2Database implements Database {
         }
     }
 
-    static class PlayerId implements PreparedStatementCreator, SqlProvider, RowCallbackHandler {
-
-        private static final String GET_ID = "SELECT " + PLAYER_ID + " FROM " + PLAYER_TABLE + " WHERE " + PLAYER_NAME + " = ?";
-        private static final String CREATE_ID = "INSERT INTO " + PLAYER_TABLE + " (" + PLAYER_NAME + ") VALUES (?)";
-
-        private static final long NOT_FOUND_ID = -1L;
+    static class PlayerIdRetriever implements PreparedStatementCreator, SqlProvider, RowCallbackHandler {
 
         private String name;
         private long id;
 
-        private String currentSql;
-
-        PlayerId(@NotNull String name) {
+        PlayerIdRetriever(@NotNull String name) {
             this.name = name;
             this.id = NOT_FOUND_ID;
         }
@@ -178,7 +223,7 @@ class H2Database implements Database {
 
         @Override
         public String getSql() {
-            return currentSql;
+            return "SELECT " + PLAYER_ID + " FROM " + PLAYER_TABLE + " WHERE " + PLAYER_NAME + " = ?";
         }
 
         @Override
@@ -188,27 +233,33 @@ class H2Database implements Database {
             }
         }
 
-        public long getId(@NotNull JdbcTemplate template) {
-            currentSql = GET_ID;
-            template.query(this, this);
-            if (id == NOT_FOUND_ID) {
-                id = createId(template);
-                Log.fine("Created player id '%s' for '%s'", id, name);
-            }
+        public long getId() {
             return id;
         }
+    }
 
-        private long createId(JdbcTemplate template) {
-            currentSql = CREATE_ID;
-            KeyHolder generatedKeys = new GeneratedKeyHolder();
-            template.update(this, generatedKeys);
-            return generatedKeys.getKey().longValue();
+    static class PlayerIdCreator implements PreparedStatementCreator, SqlProvider {
+
+        private String name;
+
+        PlayerIdCreator(@NotNull String name) {
+            this.name = name;
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement statement = con.prepareStatement(getSql(), Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, name);
+            return statement;
+        }
+
+        @Override
+        public String getSql() {
+            return "INSERT INTO " + PLAYER_TABLE + " (" + PLAYER_NAME + ") VALUES (?)";
         }
     }
 
     static class CharacterSelectionRetriever implements PreparedStatementCreator, SqlProvider, RowCallbackHandler {
-
-        public static final long NOT_FOUND_ID = -1L;
 
         private long playerId;
         private long characterId;
@@ -227,7 +278,7 @@ class H2Database implements Database {
 
         @Override
         public String getSql() {
-            return "SELECT " + PLAYER_ID + " FROM " + PLAYER_TABLE + " WHERE " + PLAYER_NAME + " = ?";
+            return "SELECT " + CHARACTER_ID + " FROM " + CHARACTER_SELECTION_TABLE + " WHERE " + PLAYER_ID + " = ?";
         }
 
         @Override
@@ -239,6 +290,162 @@ class H2Database implements Database {
 
         public long getCharacterId() {
             return characterId;
+        }
+    }
+
+    static class CharacterStatsRetriever implements PreparedStatementCreator, SqlProvider,ResultSetExtractor<CharacterStats> {
+
+        private long characterId;
+
+        CharacterStatsRetriever(long characterId) {
+            this.characterId = characterId;
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement statement = con.prepareStatement(getSql());
+            statement.setLong(1, characterId);
+            return statement;
+        }
+
+        @Override
+        public String getSql() {
+            return "SELECT * FROM " + CHARACTER_STATS_TABLE + " WHERE " + CHARACTER_ID + " = ?";
+        }
+
+        @Override
+        public CharacterStats extractData(ResultSet rs) throws SQLException, DataAccessException {
+            rs.next();
+            CharacterStats stats = new CharacterStats(rs.getLong(1));
+            stats.setLevel(rs.getByte(2));
+            stats.setExp(rs.getLong(3));
+            stats.setMaxHealth(rs.getInt(4));
+            stats.setMaxMana(rs.getInt(5));
+            stats.setHealth(rs.getInt(6));
+            stats.setMana(rs.getInt(7));
+            stats.setStrength(rs.getShort(8));
+            stats.setDexterity(rs.getShort(9));
+            stats.setConstitution(rs.getShort(10));
+            stats.setIntelligence(rs.getShort(11));
+            stats.setWisdom(rs.getShort(12));
+            return stats;
+        }
+    }
+
+    static abstract class CharacterStatsPreparedStatementCreator implements PreparedStatementCreator, SqlProvider {
+
+        static enum Type {
+            UPDATE, INSERT
+        }
+
+        private CharacterStats stats;
+        private Type type;
+
+        CharacterStatsPreparedStatementCreator(@NotNull CharacterStats stats, @NotNull Type type) {
+            this.stats = stats;
+            this.type = type;
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement statement;
+            switch (type) {
+                case INSERT:
+                    statement = con.prepareStatement(getSql(), Statement.RETURN_GENERATED_KEYS);
+                    break;
+                default:
+                    statement = con.prepareStatement(getSql());
+                    break;
+            }
+            statement.setByte(1, stats.getLevel());
+            statement.setLong(2, stats.getExp());
+            statement.setInt(3, stats.getMaxHealth());
+            statement.setInt(4, stats.getMaxMana());
+            statement.setInt(5, stats.getHealth());
+            statement.setInt(6, stats.getMana());
+            statement.setShort(7, stats.getStrength());
+            statement.setShort(8, stats.getDexterity());
+            statement.setShort(9, stats.getConstitution());
+            statement.setShort(10, stats.getIntelligence());
+            statement.setShort(11, stats.getWisdom());
+            statement.setLong(12, stats.getCharacterId());
+            return statement;
+        }
+    }
+
+    static class CharacterStatsCreator extends CharacterStatsPreparedStatementCreator {
+
+        CharacterStatsCreator(@NotNull CharacterStats stats) {
+            super(stats, Type.INSERT);
+        }
+
+        @Override
+        public String getSql() {
+            return "INSERT INTO " + CHARACTER_STATS_TABLE + " "
+                    + "(Level, Experience, MaxHealth, MaxMana, Health, Mana, Strength, Dexterity, Constitution, Intelligence, Wisdom, " + CHARACTER_ID + ") "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        }
+    }
+
+    static class CharacterStatsUpdater extends CharacterStatsPreparedStatementCreator {
+
+        CharacterStatsUpdater(@NotNull CharacterStats stats) {
+            super(stats, Type.UPDATE);
+        }
+
+        @Override
+        public String getSql() {
+            return "UPDATE INTO " + CHARACTER_STATS_TABLE + " SET "
+                    + "Level=?, Experience=?, MaxHealth=?, MaxMana=?, Health=?, Mana=?, Strength=?, Dexterity=?, Constitution=?, Intelligence=?, Wisdom=? "
+                    + "WHERE " + CHARACTER_ID + "=?";
+        }
+    }
+
+    static class CharacterCreator implements PreparedStatementCreator, SqlProvider {
+
+        private long playerId;
+        private String name;
+
+        CharacterCreator(long playerId, @NotNull String name) {
+            this.playerId = playerId;
+            this.name = name;
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement statement = con.prepareStatement(getSql(), Statement.RETURN_GENERATED_KEYS);
+            statement.setLong(1, playerId);
+            statement.setString(2, name);
+            return statement;
+        }
+
+        @Override
+        public String getSql() {
+            return "INSERT INTO " + CHARACTER_TABLE + " (" + PLAYER_ID + ", " + CHARACTER_NAME + ") VALUES (?, ?)";
+        }
+    }
+
+    static class CharacterSelector implements PreparedStatementCreator, SqlProvider {
+
+        private long playerId;
+        private long characterId;
+
+        CharacterSelector(long playerId, long characterId) {
+            this.playerId = playerId;
+            this.characterId = characterId;
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement statement = con.prepareStatement(getSql());
+            statement.setLong(1, playerId);
+            statement.setLong(2, characterId);
+            return statement;
+        }
+
+        @Override
+        public String getSql() {
+            return "MERGE INTO " + CHARACTER_SELECTION_TABLE + " (" + PLAYER_ID + ", " + CHARACTER_ID + ") VALUES (?, ?)";
         }
     }
 }
