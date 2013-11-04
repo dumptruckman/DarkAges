@@ -309,9 +309,9 @@ public abstract class Ability {
                 }
             }
         }
-        plugin.getPlayerSession(player).cancelCast();
+        plugin.getSessionManager().getPlayerSession(player).cancelCast();
         if (canUseAbility(player)) {
-            plugin.getPlayerSession(player).beginCast(this);
+            plugin.getSessionManager().getPlayerSession(player).beginCast(this);
         }
     }
 

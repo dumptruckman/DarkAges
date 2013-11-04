@@ -29,7 +29,7 @@ public class ShadowFigure extends Ambush {
     @Override
     protected boolean onAbilityUse(final Player player) {
         if (super.onAbilityUse(player)) {
-            LivingEntity target = plugin.getPlayerSession(player).getTarget();
+            LivingEntity target = plugin.getSessionManager().getPlayerSession(player).getTarget();
             target.damage(1, player);
             return true;
         }

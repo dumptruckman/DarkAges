@@ -8,16 +8,16 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CharacterData implements ConfigurationSerializable {
+public class CharacterStats implements ConfigurationSerializable {
 
-    private int strength = 3, dexterity = 3, constitution = 3, intelligence = 3, wisdom = 3;
     private int level = 1, exp = 0;
     private int health = 50, maxHealth = 50;
     private int mana = 50, maxMana = 50;
+    private int strength = 3, dexterity = 3, constitution = 3, intelligence = 3, wisdom = 3;
 
-    public CharacterData() { }
+    public CharacterStats() { }
 
-    public CharacterData(Map<String, Object> data) {
+    public CharacterStats(Map<String, Object> data) {
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             try {
                 if (entry.getKey().equals(ConfigurationSerialization.SERIALIZED_TYPE_KEY)) {

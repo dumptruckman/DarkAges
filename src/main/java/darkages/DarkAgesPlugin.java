@@ -14,7 +14,8 @@ import darkages.ability.spells.BeagIoc;
 import darkages.ability.spells.Dachaidh;
 import darkages.arena.Arena;
 import darkages.arena.ArenaListener;
-import darkages.character.CharacterData;
+import darkages.character.CharacterStats;
+import darkages.dao.Database;
 import darkages.listeners.AbilityUseListener;
 import darkages.listeners.DeathHandler;
 import darkages.listeners.ItemUpdateAndDropListener;
@@ -24,13 +25,12 @@ import darkages.listeners.PortalListener;
 import darkages.menu.LearningMenu;
 import darkages.menu.SkillMenu;
 import darkages.menu.SpellMenu;
-import darkages.tasks.TickTask;
+import darkages.session.SessionManager;
 import darkages.util.CitizensLink;
 import darkages.util.ImmutableLocation;
 import darkages.util.Log;
 import darkages.util.StringTools;
 import darkages.util.TownyLink;
-import darkages.website.WebsiteConnection;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -42,29 +42,23 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pluginbase.logging.LoggablePlugin;
+import pluginbase.bukkit.AbstractBukkitPlugin;
+import pluginbase.jdbc.SpringDatabaseSettings;
+import pluginbase.jdbc.SpringJdbcAgent;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listener {
+public class DarkAgesPlugin extends AbstractBukkitPlugin {
 
     private SingleViewMenu mainMenu;
     private DeathHandler deathHandler;
@@ -72,19 +66,23 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     private TownyLink townyLink;
     private WorldGuardPlugin worldGuard;
 
-    private final Map<Player, PlayerSession> playerSessions = new HashMap<Player, PlayerSession>(Bukkit.getMaxPlayers());
+    private SessionManager sessionManager;
+
+    private SpringJdbcAgent jdbcAgent;
+    private DatabaseThread dbThread;
+
     private final Map<String, Arena> arenas = new HashMap<String, Arena>(5);
 
     @Override
-    public void onLoad() {
+    public void onPluginLoad() {
         Log.init(this);
-        ConfigurationSerialization.registerClass(CharacterData.class);
+        ConfigurationSerialization.registerClass(CharacterStats.class);
         ConfigurationSerialization.registerClass(Arena.class);
         ConfigurationSerialization.registerClass(ImmutableLocation.class);
     }
 
     @Override
-    public void onEnable() {
+    public void onPluginEnable() {
         //fixUpBukkitEnchantment(); This doesn't work yet!
 
         // Setup vault permissions
@@ -105,6 +103,8 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         // Setup abilities
         initializeAbilities();
 
+        sessionManager = new SessionManager(this);
+
         // Setup admin menu
         mainMenu = new LearningMenu(this).buildMenu();
 
@@ -115,7 +115,6 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
         new PlayerMoveListener(this);
         new PlayerCancelCastListener(this);
         new PortalListener(this);
-        getServer().getPluginManager().registerEvents(this, this);
 
         // Setup recipes
         ShapelessRecipe recipe = new ShapelessRecipe(new ItemStack(AbilityDetails.SOUL_STONE.getItemStack()));
@@ -138,8 +137,24 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
             e.printStackTrace();
         }
 
-        // Setup tick task
-        new TickTask(this).runTaskTimer(this, 1L, 1L);
+        // Setup jdbc agent
+        initializeDatabase();
+        dbThread = new DatabaseThread(getJdbcAgent());
+        dbThread.start();
+    }
+
+    private void initializeDatabase() {
+        try {
+            jdbcAgent = SpringJdbcAgent.createAgent(loadDatabaseSettings(new SpringDatabaseSettings()), getDataFolder(), getClassLoader());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @NotNull
+    @Override
+    public SpringJdbcAgent getJdbcAgent() {
+        return jdbcAgent;
     }
 
     private File getArenasFile() {
@@ -154,96 +169,6 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
                 arenas.put(arenaName, (Arena) config.get(arenaName));
             } catch (ClassCastException e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-    @EventHandler
-    public void playerJoin(PlayerJoinEvent event) {
-        final Player player = event.getPlayer();
-        try {
-            final WebsiteConnection connection = new WebsiteConnection(this, player);
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (!connection.isUserRegistered()) {
-                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
-                                @Override
-                                public void run() {
-                                    player.sendMessage(ChatColor.AQUA + "If you like the server, check out the website " + ChatColor.BLUE + ChatColor.UNDERLINE + "http://gnarbros.dyndns.org");
-                                    player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "To register for a website account type " + ChatColor.GOLD + "/register");
-                                }
-                            });
-                        }
-                        connection.closeConnection();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, 30L);
-        } catch (ClassNotFoundException ignore) { }
-    }
-
-    @EventHandler
-    public void playerQuit(PlayerQuitEvent event) {
-        if (playerSessions.containsKey(event.getPlayer())) {
-            playerSessions.get(event.getPlayer()).endSession();
-            playerSessions.remove(event.getPlayer());
-        }
-    }
-
-    @EventHandler
-    public void playerCommand(PlayerCommandPreprocessEvent event) {
-        String[] args = event.getMessage().split(" ");
-        if (args[0].startsWith("/") && args[0].length() > 1) {
-            args[0] = args[0].substring(1);
-        }
-        final Player player = event.getPlayer();
-        if (args[0].equalsIgnoreCase("register")) {
-            event.setCancelled(true);
-            if (args.length < 3) {
-                player.sendMessage("usage: /register <email> <password>");
-                return;
-            }
-            try {
-                final String email = args[1];
-                final String password = args[2];
-                final WebsiteConnection connection = new WebsiteConnection(this, player);
-                if (!connection.isValidEmailAddress(email)) {
-                    player.sendMessage(ChatColor.RED + "The email address you entered does not appear to be valid!");
-                    return;
-                }
-                if (password.length() < 6) {
-                    player.sendMessage(ChatColor.RED + "Your password should be at least 6 characters in length!");
-                    return;
-                }
-                player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Just a moment...");
-                Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            connection.registerUser(password, email);
-                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
-                                @Override
-                                public void run() {
-                                    player.sendMessage(ChatColor.GREEN + "You have successfully registered for the website!");
-                                    player.sendMessage(ChatColor.GRAY + "Your username is the same as your minecraft username!");
-                                }
-                            });
-                        } catch (final Exception e) {
-                            Bukkit.getScheduler().runTask(DarkAgesPlugin.this, new Runnable() {
-                                @Override
-                                public void run() {
-                                    player.sendMessage(ChatColor.RED + e.getMessage());
-                                }
-                            });
-                        }
-                    }
-                });
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                player.sendMessage(ChatColor.RED + "Yikes! Something went wrong.  Contact dumptruckman!");
             }
         }
     }
@@ -271,14 +196,14 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @Override
-    public void onDisable() {
+    public void onPluginDisable() {
         Ability.ABILITY_ITEMS.clear();
         Ability.LEARNING_ITEMS.clear();
+        dbThread.interrupt();
     }
 
     @Override
-    public void reloadConfig() {
-        super.reloadConfig();
+    public void onReloadConfig() {
         loadArenas();
     }
 
@@ -381,52 +306,8 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
     }
 
     @NotNull
-    public PlayerSession getPlayerSession(@NotNull final Player player) {
-        PlayerSession session = playerSessions.get(player);
-        if (session == null) {
-            File folder = new File(getDataFolder(), "players");
-            folder.mkdirs();
-            File file = new File(folder, player.getName() + ".yml");
-            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-            CharacterData data;
-            if (config.contains("data")) {
-                Object obj = config.get("data");
-                if (obj instanceof CharacterData) {
-                    data = (CharacterData) obj;
-                    Log.fine("Loaded character data for %s", player.getName());
-                } else {
-                    Log.severe("Could not load character data!");
-                    data = new CharacterData();
-                    config.set("data", data);
-                }
-            } else {
-                Log.fine("Creating new character data for %s", player.getName());
-                data = new CharacterData();
-                config.set("data", data);
-            }
-            try {
-                config.save(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            session = new PlayerSession(this, player, data);
-            playerSessions.put(player, session);
-        }
-        return session;
-    }
-
-    @Nullable
-    public PlayerSession getPlayerSessionWhereTargeted(@NotNull final Player player) {
-        for (PlayerSession session : playerSessions.values()) {
-            if (session.getTarget() != null && session.getTarget().equals(player)) {
-                return session;
-            }
-        }
-        return null;
-    }
-
-    public Collection<PlayerSession> getPlayerSessions() {
-        return playerSessions.values();
+    public SessionManager getSessionManager() {
+        return sessionManager;
     }
 
     @Nullable
@@ -461,5 +342,16 @@ public class DarkAgesPlugin extends JavaPlugin implements LoggablePlugin, Listen
 
     public WorldGuardPlugin getWorldGuard() {
         return worldGuard;
+    }
+
+    @NotNull
+    @Override
+    public String getCommandPrefix() {
+        return "da";
+    }
+
+    @NotNull
+    public Database getDAO() {
+        return dbThread;
     }
 }

@@ -13,8 +13,8 @@
 
     <repositories>
         <repository>
-            <id>bukkit</id>
-            <url>http://repo.bukkit.org/content/groups/public/</url>
+            <id>md-5</id>
+            <url>http://repo.md-5.net/content/groups/public/</url>
         </repository>
         <repository>
             <id>onarandombox</id>
@@ -130,12 +130,10 @@
                         <configuration>
                             <artifactSet>
                                 <includes>
-                                    <include>com.dumptruckman.minecraft.pluginbase:Logging</include>
-                                    <include>com.dumptruckman.minecraft.pluginbase:Messages</include>
-                                    <include>com.dumptruckman.minecraft.pluginbase:Properties</include>
-                                    <include>com.dumptruckman.minecraft.pluginbase:Properties-Bukkit</include>
-                                    <include>com.dumptruckman.minecraft.pluginbase:MinecraftLink</include>
+                                    <include>com.dumptruckman.minecraft.pluginbase:Plugin-Bukkit</include>
+                                    <include>com.dumptruckman.minecraft.pluginbase:JDBC-Spring</include>
                                     <include>com.dumptruckman.minecraft:ActionMenuPlus</include>
+                                    <include>com.h2database:h2</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -157,18 +155,28 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.6.4-R1.0</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.6.4-R1.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>craftbukkit</artifactId>
-            <version>1.6.4-R1.0</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.6.4-R1.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>3.2.4.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.3.174</version>
         </dependency>
         <dependency>
             <groupId>com.dumptruckman.minecraft</groupId>
@@ -181,6 +189,13 @@
             <groupId>com.dumptruckman.minecraft.pluginbase</groupId>
             <artifactId>Plugin-Bukkit</artifactId>
             <version>1.5-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dumptruckman.minecraft.pluginbase</groupId>
+            <artifactId>JDBC-Spring</artifactId>
+            <version>0.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>

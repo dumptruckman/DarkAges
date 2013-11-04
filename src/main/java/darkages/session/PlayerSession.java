@@ -1,8 +1,9 @@
-package darkages;
+package darkages.session;
 
+import darkages.DarkAgesPlugin;
 import darkages.ability.Ability;
 import darkages.ability.CastingTask;
-import darkages.character.CharacterData;
+import darkages.character.PlayerCharacter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,7 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class PlayerSession {
+public final class PlayerSession {
 
     private static final PotionEffectType CAST_EFFECT = PotionEffectType.CONFUSION;
 
@@ -27,7 +28,9 @@ public class PlayerSession {
     private final DarkAgesPlugin plugin;
     private final Player player;
 
-    private final CharacterData data;
+    private final PlayerCharacter character;
+
+    private final long id;
 
     private LivingEntity target = null;
     private CastingTask castingTask = null;
@@ -36,14 +39,23 @@ public class PlayerSession {
     private boolean confusedBeforeCasting = false;
     private final CancelPortalLimitation portalLimitationCanceller = new CancelPortalLimitation();
 
-    public PlayerSession(final DarkAgesPlugin plugin, final Player player, final CharacterData data) {
+    PlayerSession(final DarkAgesPlugin plugin, final Player player, long id, final PlayerCharacter character) {
         this.plugin = plugin;
         this.player = player;
-        this.data = data;
+        this.id = id;
+        this.character = character;
     }
 
     public Player getPlayer() {
         return player;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public PlayerCharacter getCharacter() {
+        return character;
     }
 
     public LivingEntity getTarget() {
@@ -131,16 +143,16 @@ public class PlayerSession {
         return !isCasting() && castingBlock == null;
     }
 
-    public Block getCastingBlock() {
+    public Block getCastingIndicatorBlock() {
         return castingBlock;
     }
 
     public void regenerateHealthAndMana() {
         if (!player.isDead() && (player.getHealth() != player.getMaxHealth() || player.getFoodLevel() == 0)) {
             temporaryRegenHealth();
+            //regenerateHealth();
+            //regenerateMana();
         }
-        //regenerateHealth();
-        //regenerateMana();
     }
 
     private void temporaryRegenHealth() {
@@ -163,7 +175,7 @@ public class PlayerSession {
     }
 
     private double getRegenPercent(int stat) {
-        int diff = stat - data.getLevel();
+        int diff = stat - getCharacter().getStats().getLevel();
         if (diff > 10) {
             diff = 10;
         } else if (diff < 0) {
@@ -181,30 +193,30 @@ public class PlayerSession {
     }
 
     private void regenerateHealth() {
-        int diff = data.getConstitution() - data.getLevel();
+        int diff = getCharacter().getStats().getConstitution() - getCharacter().getStats().getLevel();
         if (diff > 10) {
             diff = 10;
         } else if (diff < 0) {
             diff = 0;
         }
-        int health = (int) (data.getHealth() + (data.getMaxHealth() * (diff / 100D + .1D)));
-        if (health > data.getMaxHealth()) {
-            health = data.getMaxHealth();
+        int health = (int) (getCharacter().getStats().getHealth() + (getCharacter().getStats().getMaxHealth() * (diff / 100D + .1D)));
+        if (health > getCharacter().getStats().getMaxHealth()) {
+            health = getCharacter().getStats().getMaxHealth();
         }
-        data.setHealth(health);
+        getCharacter().getStats().setHealth(health);
     }
 
     private void regenerateMana() {
-        int diff = data.getWisdom() - data.getLevel();
+        int diff = getCharacter().getStats().getWisdom() - getCharacter().getStats().getLevel();
         if (diff > 10) {
             diff = 10;
         } else if (diff < 0) {
             diff = 0;
         }
-        int mana = (int) (data.getMana() + (data.getMaxMana() * (diff / 100D + .1D)));
-        if (mana > data.getMaxMana()) {
-            mana = data.getMaxMana();
+        int mana = (int) (getCharacter().getStats().getMana() + (getCharacter().getStats().getMaxMana() * (diff / 100D + .1D)));
+        if (mana > getCharacter().getStats().getMaxMana()) {
+            mana = getCharacter().getStats().getMaxMana();
         }
-        data.setMana(mana);
+        getCharacter().getStats().setMana(mana);
     }
 }

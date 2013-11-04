@@ -1,7 +1,7 @@
 package darkages.listeners;
 
 import darkages.DarkAgesPlugin;
-import darkages.PlayerSession;
+import darkages.session.PlayerSession;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,7 +23,7 @@ public class PlayerMoveListener implements Listener {
         if (from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ() && from.getBlockY() == to.getBlockY()) {
             return;
         }
-        PlayerSession session = plugin.getPlayerSession(event.getPlayer());
+        PlayerSession session = plugin.getSessionManager().getPlayerSession(event.getPlayer());
         session.cancelCast();
     }
 }

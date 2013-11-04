@@ -52,13 +52,13 @@ public class BeagIoc extends Ability {
                 //return false;
             }
         }
-        plugin.getPlayerSession(player).setTarget(target);
+        plugin.getSessionManager().getPlayerSession(player).setTarget(target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = plugin.getPlayerSession(player).getTarget();
+        LivingEntity target = plugin.getSessionManager().getPlayerSession(player).getTarget();
         double newHealth = target.getHealth();
         newHealth += HEAL_AMOUNT;
         if (newHealth > 20) {

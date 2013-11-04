@@ -1,7 +1,6 @@
 package darkages.listeners;
 
 import darkages.DarkAgesPlugin;
-import darkages.PlayerSession;
 import darkages.util.TownyLink;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -23,15 +22,12 @@ public class PortalListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void playerPortalEvent(PlayerPortalEvent event) {
-        if (!plugin.getPlayerSession(event.getPlayer()).isAllowedToPortal()) {
+        if (!plugin.getSessionManager().getPlayerSession(event.getPlayer()).isAllowedToPortal()) {
             event.setCancelled(true);
         } else {
             Block block = event.getFrom().getBlock();
-            for (PlayerSession session : plugin.getPlayerSessions()) {
-                if (block.equals(session.getCastingBlock())) {
-                    event.setCancelled(true);
-                    return;
-                }
+            if (plugin.getSessionManager().isBlockACastingIndicator(block)) {
+                event.setCancelled(true);
             }
         }
     }

@@ -42,13 +42,13 @@ public class Ambush extends Ability {
             player.sendMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "No target or not close enough!");
             return false;
         }
-        plugin.getPlayerSession(player).setTarget(target);
+        plugin.getSessionManager().getPlayerSession(player).setTarget(target);
         return true;
     }
 
     @Override
     protected boolean onAbilityUse(final Player player) {
-        LivingEntity target = plugin.getPlayerSession(player).getTarget();
+        LivingEntity target = plugin.getSessionManager().getPlayerSession(player).getTarget();
         Location tpLoc = null;
         Vector tVec = target.getLocation().toVector();
         Vector dir = player.getLocation().getDirection();
